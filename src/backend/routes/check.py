@@ -122,9 +122,16 @@ async def run_check(body: CheckRequest):
                     judgment = "불일치"
                     suggestion = f"원본은 {source_val}입니다. {val} → {source_val}로 수정."
             else:
-                if key.lower().startswith("규칙") or "무시" in key:
-                    judgment = "일치"
-                    suggestion = None
+                # 원본에 없는 키: 값 자체가 원본의 어떤 값과 일치하면 "값은 있으나 항목 대응이 다름"
+                matched = None
+                for sk, sv in source_values.items():
+                    if _normalize_number(val) == _normalize_number(sv):
+                        matched = (sk, sv)
+                        break
+                if matched:
+                    mj, mv = matched
+                    judgment = "값은 있으나 항목 대응이 다름"
+                    suggestion = f"원본의 '{mj}'({mv})와 값은 같지만 항목 대응이 다릅니다."
                 else:
                     judgment = "원본에 없음"
                     suggestion = f"원본 자료에 '{key}' 항목이 없습니다."
