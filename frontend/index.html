@@ -233,9 +233,10 @@
     <div class="card">
       <h2>4. 다운로드</h2>
       <div class="download-row">
-        <button id="downloadFixedBtn" type="button">고쳐진 파일 다운로드</button>
-        <button id="downloadMemoryBtn" type="button">기억 파일(memory.json) 다운로드</button>
+        <button id="downloadFixedBtn" type="button" disabled>고쳐진 파일 다운로드</button>
+        <button id="downloadMemoryBtn" type="button" disabled>기억 파일(memory.json) 다운로드</button>
       </div>
+      <div id="downloadInfo" style="margin-top: 8px; font-size: 0.8125rem; color: var(--muted);"></div>
     </div>
 
     <div class="card rerun-section">
@@ -263,7 +264,7 @@
   <div class="notice">
     <strong>고지:</strong> 이 서비스는 LLM(Solar Pro 4)을 활용한 검수 도구입니다.
     자동 판정 결과에 오류가 있을 수 있으므로, 중요 문서 검수는 반드시 사람이 최종 확인해야 합니다.
-    판정은cited figure check 스킬의 5개 라벨(일치 / 불일치 / 값은 있으나 항목 대응이 다름 / 원본에 없음 / 확인 불가) 범위 내에서만 이루어집니다.
+    판정은 cited figure check 스킬의 5개 라벨(일치 / 불일치 / 값은 있으나 항목 대응이 다름 / 원본에 없음 / 확인 불가) 범위 내에서만 이루어집니다.
     이미지, URL, PDF는 입력으로 받지 않으며, 수치 계산은 코드가 직접 수행합니다.
   </div>
 
@@ -293,6 +294,7 @@
   const rerunResult = $("rerunResult");
   const memoryPreview = $("memoryPreview");
   const memoryFileInput = $("memoryFile");
+  const downloadInfo = $("downloadInfo");
 
   let currentJobId = null;
   let currentResults = [];
@@ -300,6 +302,8 @@
   let currentDraftText = "";
   let currentOriginalId = null;
   let currentDraftId = null;
+  let currentFixedText = null;
+  let currentMemoryData = null;
 
   // 예시 버튼
   exampleBtn.addEventListener("click", async () => {
@@ -377,8 +381,6 @@
     currentOriginalText = origText;
     currentDraftText = draftText;
 
-    // 텍스트는 임시로 /api/upload에 FormData로 보내지 않고, 직접 check 호출에 사용할 수 있도록
-    // 백엔드에 텍스트 올리기용 엔드포인트가 없으므로, 먼저 텍스트 파일을 업로드한다.
     showProgress("텍스트를 업로드 중입니다...");
     try {
       const form = new FormData();
@@ -415,23 +417,39 @@
         throw new Error(data.error || "검수 중 오류");
       }
       currentResults = data.results || [];
+      currentFixedText = data.fixed_text || null;
+      currentMemoryData = data.memory_data || null;
       renderResults(data);
       renderBeforeAfter();
+      updateDownloadButtons();
+      updateMemoryPreview();
       resultsSection.classList.remove("hidden");
-      downloadFixedBtn.disabled = false;
-      downloadMemoryBtn.disabled = false;
-      // 메모리 파일 미리보기
-      try {
-        const memRes = await fetch("/api/download/memory");
-        if (memRes.ok) {
-          const memBlob = await memRes.blob();
-          const text = await memBlob.text();
-          memoryPreview.textContent = text;
-        }
-      } catch (e) { /* 무시 */ }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       showProgress(e.message, true);
+    }
+  }
+
+  function updateDownloadButtons() {
+    if (currentFixedText) {
+      downloadFixedBtn.disabled = false;
+      downloadInfo.textContent = `고쳐진 파일 준비됨 (${new Blob([currentFixedText]).size} 바이트)`;
+    } else {
+      downloadFixedBtn.disabled = true;
+      downloadInfo.textContent = "";
+    }
+    if (currentMemoryData) {
+      downloadMemoryBtn.disabled = false;
+    } else {
+      downloadMemoryBtn.disabled = true;
+    }
+  }
+
+  function updateMemoryPreview() {
+    if (currentMemoryData) {
+      memoryPreview.textContent = JSON.stringify(currentMemoryData, null, 2);
+    } else {
+      memoryPreview.textContent = "";
     }
   }
 
@@ -458,7 +476,6 @@
       resultsBody.appendChild(tr);
     });
 
-    // 계산식 주석
     const calcItems = currentResults.filter(r => r.calculation);
     if (calcItems.length) {
       calcNote.textContent = "계산 인용 검증: " + calcItems.map(r => `${r.item}: ${r.calculation}`).join("; ");
@@ -466,7 +483,6 @@
       calcNote.textContent = "";
     }
 
-    // 확인 체크박스 이벤트
     resultsBody.querySelectorAll("input[type=checkbox]").forEach(cb => {
       cb.addEventListener("change", async (e) => {
         const idx = parseInt(e.target.dataset.idx, 10);
@@ -485,7 +501,6 @@
   }
 
   function renderBeforeAfter() {
-    // 원본과 초안 텍스트에서 수정된 부분을 표시
     const origLines = currentOriginalText.split("\n");
     const draftLines = currentDraftText.split("\n");
     const sourceMap = {};
@@ -537,12 +552,31 @@
     afterView.innerHTML = afterHtml || "<em style='color: var(--muted);'>수정본이 없습니다.</em>";
   }
 
-  // 다운로드
+  // 다운로드 — 서버리스 무상태 대응: 저장된 데이터로 직접 다운로드
   downloadFixedBtn.addEventListener("click", () => {
-    window.open("/api/download/fixed", "_blank");
+    if (!currentFixedText) return;
+    const blob = new Blob([currentFixedText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mabc_fixed_draft.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   });
+
   downloadMemoryBtn.addEventListener("click", () => {
-    window.open("/api/download/memory", "_blank");
+    if (!currentMemoryData) return;
+    const blob = new Blob([JSON.stringify(currentMemoryData, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mabc_memory.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   });
 
   // 기억 파일 재업로드
@@ -571,14 +605,10 @@
         <span class="status-badge ok">재검증 완료</span>
         &nbsp; 재검증 대상: ${data.remaining_checks}건 &nbsp;|&nbsp; 건너뛴 건수: ${data.skipped_checks}건
       `;
-      // 기억 파일 미리보기 갱신
-      try {
-        const memRes = await fetch("/api/download/memory");
-        if (memRes.ok) {
-          const memBlob = await memRes.blob();
-          memoryPreview.textContent = await memBlob.text();
-        }
-      } catch (e) { /* 무시 */ }
+      if (currentMemoryData) {
+        currentMemoryData["reverified_at"] = new Date().toISOString();
+        updateMemoryPreview();
+      }
     } catch (e) {
       rerunResult.innerHTML = `<span class="status-badge err">오류</span> ${escapeHtml(e.message)}`;
     }

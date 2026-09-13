@@ -9,6 +9,7 @@ import os
 import time
 import uuid
 import re as _re
+from datetime import datetime
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from ..models import CheckRequest, CheckResponse, CheckResultItem
@@ -118,7 +119,13 @@ async def run_check(body: CheckRequest):
         }
         for r in results
     ]
-    generate_outputs(results_dict, original_text, draft_text)
+    fixed_text = generate_outputs(results_dict, original_text, draft_text)
+    memory_data = {
+        "version": "1.0",
+        "generated_at": datetime.now().isoformat(),
+        "results": results_dict,
+        "fixed_text": fixed_text,
+    }
 
     elapsed = time.time() - start
     _JOB_STORE[job_id] = {
@@ -131,6 +138,8 @@ async def run_check(body: CheckRequest):
         status="done",
         results=results,
         elapsed_seconds=round(elapsed, 2),
+        fixed_text=fixed_text,
+        memory_data=memory_data,
     )
 
 

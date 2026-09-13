@@ -37,6 +37,9 @@ class CheckResponse(BaseModel):
     results: list[CheckResultItem] = []
     elapsed_seconds: float = 0.0
     error: Optional[str] = None
+    # Vercel 서버리스 무상태 대응: 생성된 파일 내용을 응답에 포함
+    fixed_text: Optional[str] = None          # 고쳐진 초안 텍스트
+    memory_data: Optional[dict] = None        # 기억 파일(memory.json) 내용
 
 
 # ── download ────────────────────────────────────────────────────────────────
