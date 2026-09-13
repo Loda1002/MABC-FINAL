@@ -21,14 +21,48 @@ router = APIRouter()
 _JOB_STORE: dict[str, dict] = {}
 
 
-def _read_uploaded_text(file_id: str, kind: str) -> str:
-    """업로드된 원본/초안 텍스트 파일을 읽는다."""
+def _resolve_uploaded_path(file_id: str, kind: str) -> Path:
+    """업로드된 파일의 실제 경로를 찾는다."""
     suffix_map = {"original": "_original", "draft": "_draft"}
     matches = list(Path(UPLOAD_DIR).glob(f"{file_id}{suffix_map.get(kind, '')}.*"))
     if not matches:
         raise HTTPException(status_code=404, detail=f"업로드된 {kind} 파일을 찾을 수 없습니다: {file_id}")
-    path = matches[0]
+    return matches[0]
+
+
+def _read_file_as_text(path: Path) -> str:
+    """파일 확장자에 따라 텍스트로 읽는다. xlsx는 openpyxl로 파싱."""
+    suffix = path.suffix.lower()
+    if suffix in (".xlsx", ".xls"):
+        return _xlsx_to_text(path)
     return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _xlsx_to_text(path: Path) -> str:
+    """xlsx 파일을 읽어, 시트별로 셀 내용을 텍스트 표 형태로 변환."""
+    try:
+        import openpyxl
+    except ImportError:
+        raise HTTPException(status_code=500, detail="xlsx 처리를 위한 openpyxl이 설치되어 있지 않습니다.")
+
+    wb = openpyxl.load_workbook(path, data_only=True)
+    lines: list[str] = []
+    for ws in wb.worksheets:
+        lines.append(f"# 시트: {ws.title}")
+        for row in ws.iter_rows(values_only=True):
+            cells = []
+            for c in row:
+                if c is None:
+                    cells.append("")
+                elif isinstance(c, float) and c == int(c):
+                    cells.append(str(int(c)))
+                else:
+                    cells.append(str(c))
+            line = " | ".join(cells)
+            if line.strip(" |"):
+                lines.append(line)
+        lines.append("")  # 시트 간 구분
+    return "\n".join(lines)
 
 
 @router.post("/check", response_model=CheckResponse)
@@ -47,8 +81,10 @@ async def run_check(body: CheckRequest):
     }
 
     try:
-        original_text = _read_uploaded_text(body.original_id, "original")
-        draft_text = _read_uploaded_text(body.draft_id, "draft")
+        orig_path = _resolve_uploaded_path(body.original_id, "original")
+        draft_path = _resolve_uploaded_path(body.draft_id, "draft")
+        original_text = _read_file_as_text(orig_path)
+        draft_text = _read_file_as_text(draft_path)
     except HTTPException:
         _JOB_STORE[job_id]["status"] = "error"
         _JOB_STORE[job_id]["error"] = "업로드된 파일을 찾을 수 없습니다."
@@ -105,7 +141,6 @@ async def run_check(body: CheckRequest):
     calc_results = _check_calculated_claims(original_text, draft_text)
     results.extend(calc_results)
 
-    # 결과 항목으로 dict 리스트 구성 (다운로드용 generate_outputs에 전달)
     results_dict = [
         {
             "item": r.item,

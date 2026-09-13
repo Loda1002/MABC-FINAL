@@ -6,172 +6,241 @@
 <title>MABC-FINAL — AI 요약 초안 vs 원본 대조 검수</title>
 <style>
   :root {
-    --bg: #f8f9fa;
+    --bg: #f6f8fb;
     --card: #ffffff;
+    --card-border: #eef1f6;
+    --card-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 4px 14px rgba(16,24,40,0.03);
     --border: #e2e8f0;
-    --text: #1e293b;
-    --muted: #64748b;
-    --accent: #3b82f6;
-    --red: #ef4444;
-    --blue: #3b82f6;
-    --green: #22c55e;
-    --amber: #f59e0b;
-    --radius: 8px;
+    --text: #0b1220;
+    --muted: #6b7a90;
+    --accent: #2563eb;
+    --accent-soft: #eef4ff;
+    --red: #dc2626;
+    --red-soft: #fee2e2;
+    --blue: #2563eb;
+    --blue-soft: #dbeafe;
+    --green: #16a34a;
+    --amber: #d97706;
+    --radius: 14px;
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
     margin: 0;
-    padding: 24px;
-    line-height: 1.5;
+    padding: 36px 22px 64px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  .container { max-width: 1000px; margin: 0 auto; }
-  h1 { font-size: 1.5rem; margin-top: 0; }
-  h2 { font-size: 1.125rem; margin-top: 24px; margin-bottom: 8px; }
+  .container { max-width: 1040px; margin: 0 auto; }
+  .pre-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+  h1 {
+    font-size: 1.85rem;
+    margin: 0 0 6px;
+    color: #0b1220;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin: 0 0 26px;
+    max-width: 680px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
   .card {
     background: var(--card);
-    border: 1px solid var(--border);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: var(--card-shadow);
   }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
-  .field { flex: 1; min-width: 200px; }
-  label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; color: var(--muted); }
-  input[type="file"], textarea {
-    width: 100%;
-    font-size: 0.875rem;
-    padding: 8px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: #fff;
+  .card h2 {
+    font-size: 1rem;
+    margin: 0 0 14px;
+    color: #0b1220;
+    font-weight: 650;
+    letter-spacing: -0.01em;
   }
-  textarea { min-height: 120px; font-family: "SF Mono", Consolas, monospace; resize: vertical; }
-  button {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: var(--radius);
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.secondary { background: #64748b; }
-  button.danger { background: var(--red); }
-  .results-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-    margin-top: 8px;
-  }
-  .results-table th, .results-table td {
-    border: 1px solid var(--border);
-    padding: 6px 8px;
-    text-align: left;
-    vertical-align: top;
-  }
-  .results-table th { background: #f1f5f9; font-weight: 500; color: var(--muted); }
-  .judgment { font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; display: inline-block; }
-  .judgment.match { background: #dcfce7; color: #166534; }
-  .judgment.mismatch { background: #fee2e2; color: #991b1b; }
-  .judgment.different-item { background: #fef3c7; color: #92400e; }
-  .judgment.not-in-source { background: #f1f5f9; color: #475569; }
-  .judgment.unverifiable { background: #e0e7ff; color: #3730a3; }
-  .progress {
-    padding: 12px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: var(--radius);
-    margin-bottom: 16px;
-    color: #1e40af;
-  }
-  .before-after {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .before-after > div {
-    flex: 1;
-    min-width: 280px;
-  }
-  .before-after pre {
-    background: #f8fafc;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px;
-    font-family: "SF Mono", Consolas, monospace;
-    font-size: 0.8125rem;
-    white-space: pre-wrap;
-    word-break: break-all;
-    line-height: 1.6;
-  }
-  .highlight-red { background: #fee2e2; color: #991b1b; border-radius: 2px; padding: 0 2px; }
-  .highlight-blue { background: #dbeafe; color: #1e40af; border-radius: 2px; padding: 0 2px; }
-  .notice {
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    border-radius: var(--radius);
-    padding: 12px;
-    font-size: 0.8125rem;
-    color: #92400e;
-    margin-top: 16px;
-  }
-  .download-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-  .status-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background: #e2e8f0;
+  .card .desc {
     color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 14px;
+    line-height: 1.55;
   }
-  .status-badge.ok { background: #dcfce7; color: #166534; }
-  .status-badge.err { background: #fee2e2; color: #991b1b; }
-  .hidden { display: none; }
-  .files-list { font-size: 0.8125rem; color: var(--muted); margin-top: 4px; }
-  .rerun-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-  .memory-preview {
-    background: #f8fafc;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 8px;
-    font-family: "SF Mono", Consolas, monospace;
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field.full { grid-column: 1 / -1; }
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin: 0;
+    color: #334155;
+  }
+  label .hint {
+    font-weight: 400;
+    color: var(--muted);
     font-size: 0.75rem;
-    max-height: 120px;
-    overflow: auto;
-    margin-top: 8px;
+    margin-left: 6px;
   }
+  input[type="file"], textarea, .input-fake {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 11px 13px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type="file"] { padding: 8px 10px; }
+  textarea {
+    min-height: 240px;
+    resize: none;
+    line-height: 1.6;
+    overflow: hidden;
+  }
+  textarea:focus, input[type="file"]:focus-within, .input-fake:focus-within {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  .file-area {
+    position: relative;
+    background: #fafbfc;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .file-area.has-file { border-color: #94a3b8; background: #f8fafc; }
+  .file-area .file-info { font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .file-area .file-info .name { color: #334155; font-weight: 500; word-break: break-all; }
+  .file-area .file-info .clear {
+    margin-left: auto; background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 1rem; line-height: 1; padding: 2px 6px; border-radius: 6px;
+  }
+  .file-area .file-info .clear:hover { color: var(--red); background: var(--red-soft); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--accent); color: #fff; border: 1px solid var(--accent);
+    padding: 10px 18px; border-radius: 10px;
+    font-size: 0.9rem; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, transform 0.05s;
+    box-shadow: 0 1px 2px rgba(37,99,235,0.12);
+    user-select: none;
+  }
+  .btn:hover:not(:disabled) { background: #1d4ed8; border-color: #1d4ed8; box-shadow: 0 2px 6px rgba(37,99,235,0.22); }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+  .btn.secondary { background: #f1f5f9; color: #334155; border-color: #e2e8f0; box-shadow: none; }
+  .btn.secondary:hover:not(:disabled) { background: #e2e8f0; border-color: #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); box-shadow: none; }
+  .btn.ghost:hover:not(:disabled) { background: #f8fafc; color: #0f172a; }
+  .results-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 8px; }
+  .results-table th, .results-table td { border: 1px solid var(--border); padding: 9px 10px; text-align: left; vertical-align: top; }
+  .results-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+  .judgment { font-weight: 700; padding: 3px 9px; border-radius: 9999px; font-size: 0.72rem; display: inline-block; white-space: nowrap; letter-spacing: 0.01em; }
+  .judgment.match { background: #bbf7d0; color: #166534; }
+  .judgment.mismatch { background: #fecaca; color: #991b1b; }
+  .judgment.different-item { background: #fde68a; color: #92400e; }
+  .judgment.not-in-source { background: #e2e8f0; color: #334155; }
+  .judgment.unverifiable { background: #c7d2fe; color: #3730a3; }
+  .progress { padding: 13px 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; margin-bottom: 18px; color: #1e40af; font-weight: 500; }
+  .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .before-after { grid-template-columns: 1fr; } }
+  .before-after > div { min-width: 0; }
+  .ba-label { font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+  .ba-label .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot.red { background: var(--red); }
+  .dot.blue { background: var(--blue); }
+  .before-after pre { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-family: "SF Mono", Consolas, monospace; font-size: 0.85rem; white-space: pre-wrap; word-break: break-word; line-height: 1.6; min-height: 160px; }
+  .highlight-red { background: var(--red-soft); color: #991b1b; border-radius: 3px; padding: 0 2px; }
+  .highlight-blue { background: var(--blue-soft); color: #1e40af; border-radius: 3px; padding: 0 2px; }
+  .download-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: #e2e8f0; color: #475569; }
+  .status-badge.ok { background: #bbf7d0; color: #166534; }
+  .status-badge.err { background: #fecaca; color: #991b1b; }
+  .hidden { display: none !important; }
+  .rerun-section { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px; }
+  .memory-preview { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-family: "SF Mono", Consolas, monospace; font-size: 0.75rem; max-height: 150px; overflow: auto; margin-top: 8px; white-space: pre-wrap; word-break: break-word; }
+  .notice { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 11px 14px; font-size: 0.82rem; color: #7c2d12; margin-top: 12px; }
+  .footer { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--card-border); }
+  .footer .links { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .footer a.link { color: var(--muted); text-decoration: none; padding: 5px 10px; border-radius: 8px; background: #f1f5f9; border: 1px solid #e2e8f0; transition: color 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s; font-size: 0.82rem; font-weight: 500; }
+  .footer a.link:hover { color: var(--accent); background: #eef2ff; border-color: #c7d2fe; box-shadow: 0 1px 2px rgba(37,99,235,0.1); }
+  .footer .sep { color: #cbd5e1; margin: 0 4px; }
+  .footer .disclaimer { color: var(--muted); font-size: 0.78rem; margin-top: 10px; display: block; }
+  .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e9edf2 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.6s infinite; border-radius: 8px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>MABC-FINAL &mdash; AI 요약 초안 vs 원본 대조 검수</h1>
-  <p style="color: var(--muted); font-size: 0.875rem;">
-    원본 자료와 AI 요약 초안을 올려 수치를 대조합니다. Solar Pro 4 기반 cited figure check 스킬을 호출합니다.
+  <div class="pre-title">검수 도구 · MABC-FINAL</div>
+  <div class="tags" style="margin-bottom: 8px;">
+    <span class="tag">Solar Pro 4</span>
+    <span class="tag">cited figure check</span>
+  </div>
+  <h1>원본 vs 초안 수치 대조 검수</h1>
+  <p class="subtitle">
+    원본 자료와 AI가 작성한 초안을 올리면 각 인용 수치를 원본과 대조해
+    <nobr>5개 판정 라벨</nobr>로 결과를 보여줍니다. 고쳐진 파일과 기억 파일도 내려받을 수 있습니다.
   </p>
 
-  <div id="progress" class="progress hidden"></div>
+  <div id="progress" class="progress hidden" style="transition: opacity 0.25s;"></div>
 
   <div class="card">
-    <h2>1. 파일 업로드</h2>
+    <h2>1. 원본과 초안 업로드</h2>
+    <p class="desc">왼쪽엔 원본 수치/표가 있는 자료, 오른쪽엔 검수할 초안을 올려주세요.</p>
     <div class="row">
       <div class="field">
-        <label for="originalFile">원본 자료 (xlsx, 텍스트 표, 텍스트, md, json)</label>
-        <input type="file" id="originalFile" accept=".xlsx,.xls,.txt,.md,.json">
-        <div class="files-list" id="originalFileInfo"></div>
+        <label for="originalFile">원본 자료 <span class="hint">xlsx · 텍스트 표 · md · json</span></label>
+        <div class="file-area" id="originalFileArea">
+          <input type="file" id="originalFile" accept=".xlsx,.xls,.txt,.md,.json" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+          <div class="file-info" id="originalFileInfo">
+            <span style="color:var(--muted);">원본 파일을 선택하거나 아래 텍스트로 직접 입력하세요</span>
+          </div>
+        </div>
       </div>
       <div class="field">
-        <label for="draftFile">검토 대상 초안</label>
-        <input type="file" id="draftFile" accept=".xlsx,.xls,.txt,.md,.json">
-        <div class="files-list" id="draftFileInfo"></div>
+        <label for="draftFile">검토 대상 초안 <span class="hint">xlsx · 텍스트 표 · md · json</span></label>
+        <div class="file-area" id="draftFileArea">
+          <input type="file" id="draftFile" accept=".xlsx,.xls,.txt,.md,.json" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+          <div class="file-info" id="draftFileInfo">
+            <span style="color:var(--muted);">초안 파일을 선택하거나 아래 텍스트로 직접 입력하세요</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div style="margin-top: 12px;">
+    <div class="btn-row" style="margin-top:14px;">
       <button id="exampleBtn" class="secondary" type="button">예시 데이터로 채우기</button>
       <button id="uploadBtn" disabled type="button">업로드 &amp; 검수 시작</button>
     </div>
@@ -179,52 +248,55 @@
 
   <div class="card hidden" id="textInputSection">
     <h2>1b. 텍스트 직접 입력</h2>
+    <p class="desc">파일 대신 원본과 초안을 텍스트로 붙여넣고 검수할 수도 있습니다.</p>
     <div class="row">
-      <div class="field">
-        <label>원본 텍스트</label>
-        <textarea id="originalText" placeholder="원본 자료를 텍스트로 붙여넣기"></textarea>
+      <div class="field full">
+        <label for="originalText">원본 텍스트</label>
+        <textarea id="originalText" placeholder="원본 자료를 텍스트로 붙여넣기&#10;예:&#10;품목: 가상품목 A&#10;2025년 12월 생산량: 12000만원&#10;2026년 1월 생산량: 15000만원"></textarea>
       </div>
-      <div class="field">
-        <label>초안 텍스트</label>
-        <textarea id="draftText" placeholder="검토 대상 초안을 텍스트로 붙여넣기"></textarea>
+      <div class="field full">
+        <label for="draftText">초안 텍스트</label>
+        <textarea id="draftText" placeholder="검토 대상 초안을 텍스트로 붙여넣기&#10;예:&#10;가상품목 A의 1월 생산량은 1.5억원이고, 12월 대비 35% 증가했습니다."></textarea>
       </div>
     </div>
-    <div style="margin-top: 12px;">
+    <div class="btn-row" style="margin-top:8px;">
       <button id="checkFromTextBtn" type="button">텍스트로 검수 시작</button>
     </div>
   </div>
 
   <div id="resultsSection" class="hidden">
     <div class="card">
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
+        <span id="resultsStatus" class="status-badge"></span>
+        <span id="elapsed" style="font-size: 0.8rem; color: var(--muted); margin-left:auto;"></span>
+      </div>
       <h2>2. 검수 결과</h2>
-      <span id="resultsStatus" class="status-badge"></span>
-      <span id="elapsed" style="margin-left: 8px; font-size: 0.8125rem; color: var(--muted);"></span>
       <table class="results-table" id="resultsTable">
         <thead>
           <tr>
-            <th style="width: 22%;">항목</th>
+            <th style="width: 20%;">항목</th>
             <th style="width: 14%;">인용 값</th>
             <th style="width: 14%;">원본 값</th>
-            <th style="width: 12%;">판정</th>
-            <th style="width: 20%;">근거</th>
-            <th style="width: 14%;">수정 제안</th>
-            <th style="width: 4%;">확인</th>
+            <th style="width: 13%;">판정</th>
+            <th style="width: 19%;">근거</th>
+            <th style="width: 12%;">수정 제안</th>
+            <th style="width: 8%;">확인</th>
           </tr>
         </thead>
         <tbody id="resultsBody"></tbody>
       </table>
-      <div id="calcNote" style="margin-top: 8px; font-size: 0.8125rem; color: var(--muted);"></div>
+      <div id="calcNote" style="margin-top: 10px; font-size: 0.8rem; color: var(--muted);"></div>
     </div>
 
     <div class="card">
       <h2>3. Before / After</h2>
       <div class="before-after">
         <div>
-          <label style="font-size: 0.8125rem; color: var(--muted); font-weight: 500;">Before (초안 · 문제 부분 빨강)</label>
+          <div class="ba-label"><span class="dot red"></span> Before — 초안 (문제 부분 <span style="color:var(--red);">빨강</span>)</div>
           <pre id="beforeView"></pre>
         </div>
         <div>
-          <label style="font-size: 0.8125rem; color: var(--muted); font-weight: 500;">After (수정본 · 수정 부분 파랑)</label>
+          <div class="ba-label"><span class="dot blue"></span> After — 수정본 (수정 부분 <span style="color:var(--blue);">파랑</span>)</div>
           <pre id="afterView"></pre>
         </div>
       </div>
@@ -236,67 +308,71 @@
         <button id="downloadFixedBtn" type="button" disabled>고쳐진 파일 다운로드</button>
         <button id="downloadMemoryBtn" type="button" disabled>기억 파일(memory.json) 다운로드</button>
       </div>
-      <div id="downloadInfo" style="margin-top: 8px; font-size: 0.8125rem; color: var(--muted);"></div>
+      <div id="downloadInfo" style="margin-top: 8px; font-size: 0.8rem; color: var(--muted);"></div>
+      <div class="notice">
+        LLM을 활용한 검수 도구이므로 결과에 오류가 있을 수 있습니다. 중요 문서 검수는 반드시 사람이 최종 확인해 주세요.
+      </div>
     </div>
 
     <div class="card rerun-section">
-      <h2>5. 기억 파일 재업로드 &mdash; 재검증 대상 축소</h2>
-      <p style="font-size: 0.8125rem; color: var(--muted); margin-top: 4px;">
-        이전 버전 검수 결과가 담긴 memory.json을 다시 올리면, 이미 확인된 항목은 재검증 대상에서 제외됩니다.
-      </p>
+      <h2>5. 기억 파일 재업로드 — 재검증 대상 축소</h2>
+      <p class="desc">이전 버전 검수 결과가 담긴 memory.json을 다시 올리면, 이미 확인된 항목은 재검증 대상에서 제외됩니다.</p>
       <div class="row">
         <div class="field">
           <label for="memoryFile">기억 파일 업로드</label>
-          <input type="file" id="memoryFile" accept=".json">
+          <div class="file-area" id="memoryFileArea">
+            <input type="file" id="memoryFile" accept=".json" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+            <div class="file-info" id="memoryFileInfo">
+              <span style="color:var(--muted);">memory.json을 선택하세요</span>
+            </div>
+          </div>
         </div>
-        <div class="field" style="display: flex; align-items: flex-end;">
+        <div class="field" style="display:flex; align-items:flex-end;">
           <button id="rerunBtn" class="secondary" type="button" disabled>재검증 실행</button>
         </div>
       </div>
-      <div id="rerunResult" style="margin-top: 8px; font-size: 0.875rem;"></div>
+      <div id="rerunResult" style="margin-top: 10px; font-size: 0.9rem;"></div>
       <div style="margin-top: 12px;">
-        <label style="font-size: 0.8125rem; color: var(--muted); font-weight: 500;">현재 기억 파일 미리보기</label>
+        <label style="font-size: 0.8rem; color: var(--muted); font-weight: 600; display:block; margin-bottom:4px;">현재 기억 파일 미리보기</label>
         <pre id="memoryPreview" class="memory-preview"></pre>
       </div>
     </div>
   </div>
 
-  <div class="notice">
-    <strong>고지:</strong> 이 서비스는 LLM(Solar Pro 4)을 활용한 검수 도구입니다.
-    자동 판정 결과에 오류가 있을 수 있으므로, 중요 문서 검수는 반드시 사람이 최종 확인해야 합니다.
-    판정은 cited figure check 스킬의 5개 라벨(일치 / 불일치 / 값은 있으나 항목 대응이 다름 / 원본에 없음 / 확인 불가) 범위 내에서만 이루어집니다.
-    이미지, URL, PDF는 입력으로 받지 않으며, 수치 계산은 코드가 직접 수행합니다.
-  </div>
-
-  <div style="margin-top: 24px; font-size: 0.8125rem; color: var(--muted);">
-    <a href="/docs" target="_blank">OpenAPI 문서</a> &middot;
-    <a href="/api/health" target="_blank">건강 체크</a>
+  <div class="footer">
+    <div class="links">
+      <a class="link" href="/docs" target="_blank">OpenAPI 문서</a>
+      <span class="sep">·</span>
+      <a class="link" href="/api/health" target="_blank">건강 체크</a>
+      <span class="sep">·</span>
+      <span style="color:var(--muted); font-size:0.82rem;">MABC-FINAL · AI 요약 초안 대조 검수</span>
+    </div>
+    <span class="disclaimer">이미지·URL·PDF는 입력으로 받지 않으며, 수치 계산은 코드가 직접 수행합니다.</span>
   </div>
 </div>
 
 <script>
 (function() {
   const $ = (id) => document.getElementById(id);
-  const uploadBtn = $("uploadBtn");
-  const exampleBtn = $("exampleBtn");
-  const checkFromTextBtn = $("checkFromTextBtn");
-  const progressEl = $("progress");
-  const resultsSection = $("resultsSection");
-  const resultsBody = $("resultsBody");
-  const resultsStatus = $("resultsStatus");
-  const elapsedEl = $("elapsed");
-  const beforeView = $("beforeView");
-  const afterView = $("afterView");
-  const calcNote = $("calcNote");
-  const downloadFixedBtn = $("downloadFixedBtn");
-  const downloadMemoryBtn = $("downloadMemoryBtn");
-  const rerunBtn = $("rerunBtn");
-  const rerunResult = $("rerunResult");
-  const memoryPreview = $("memoryPreview");
-  const memoryFileInput = $("memoryFile");
-  const downloadInfo = $("downloadInfo");
+  const uploadBtn = $("#uploadBtn");
+  const exampleBtn = $("#exampleBtn");
+  const checkFromTextBtn = $("#checkFromTextBtn");
+  const progressEl = $("#progress");
+  const resultsSection = $("#resultsSection");
+  const resultsBody = $("#resultsBody");
+  const resultsStatus = $("#resultsStatus");
+  const elapsedEl = $("#elapsed");
+  const beforeView = $("#beforeView");
+  const afterView = $("#afterView");
+  const calcNote = $("#calcNote");
+  const downloadFixedBtn = $("#downloadFixedBtn");
+  const downloadMemoryBtn = $("#downloadMemoryBtn");
+  const rerunBtn = $("#rerunBtn");
+  const rerunResult = $("#rerunResult");
+  const memoryPreview = $("#memoryPreview");
+  const memoryFileInput = $("#memoryFile");
+  const downloadInfo = $("#downloadInfo");
 
-  let currentJobId = null;
   let currentResults = [];
   let currentOriginalText = "";
   let currentDraftText = "";
@@ -304,104 +380,127 @@
   let currentDraftId = null;
   let currentFixedText = null;
   let currentMemoryData = null;
+  let progressTimer = null;
 
-  // 예시 버튼
+  function clearProgress() {
+    if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
+    progressEl.classList.add("hidden");
+    progressEl.textContent = "";
+    progressEl.style.borderColor = "#bfdbfe";
+    progressEl.style.background = "#eff6ff";
+    progressEl.style.color = "#1e40af";
+    uploadBtn.disabled = false;
+  }
+
+  function showProgress(msg, isError, autoHideSec) {
+    if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
+    progressEl.classList.remove("hidden");
+    progressEl.textContent = msg;
+    progressEl.style.borderColor = isError ? "#fecaca" : "#bfdbfe";
+    progressEl.style.background = isError ? "#fef2f2" : "#eff6ff";
+    progressEl.style.color = isError ? "#991b1b" : "#1e40af";
+    uploadBtn.disabled = true;
+    if (autoHideSec && !isError) {
+      progressTimer = setTimeout(() => { clearProgress(); }, autoHideSec * 1000);
+    }
+  }
+
+  function setFileInfo(areaId, infoId, file, placeholder) {
+    const area = $("#" + areaId);
+    const info = $("#" + infoId);
+    if (!file) {
+      area.classList.remove("has-file");
+      info.innerHTML = `<span style="color:var(--muted);">${placeholder}</span>`;
+      return;
+    }
+    area.classList.add("has-file");
+    info.innerHTML = `<span class="name">${escapeHtml(file.name)}</span> <button class="clear" data-clear="${areaId}" title="선택 해제">×</button>`;
+  }
+
   exampleBtn.addEventListener("click", async () => {
     try {
+      $("#textInputSection").classList.remove("hidden");
       const res = await fetch("/api/example", { method: "POST" });
       if (!res.ok) throw new Error("예시 데이터를 가져오지 못했습니다.");
       const data = await res.json();
-      $("originalText").value = data.original_text;
-      $("draftText").value = data.draft_text;
-      $("originalFile").value = "";
-      $("draftFile").value = "";
-      $("originalFileInfo").textContent = "";
-      $("draftFileInfo").textContent = "";
+      $("#originalText").value = data.original_text;
+      $("#draftText").value = data.draft_text;
+      $("#originalFile").value = "";
+      $("#draftFile").value = "";
+      setFileInfo("originalFileArea", "originalFileInfo", null, "원본 텍스트를 입력했습니다");
+      setFileInfo("draftFileArea", "draftFileInfo", null, "초안 텍스트를 입력했습니다");
       uploadBtn.disabled = true;
-      $("textInputSection").classList.remove("hidden");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       alert(e.message);
     }
   });
 
-  // 파일 선택 시 버튼 활성화
-  $("originalFile").addEventListener("change", updateUploadBtn);
-  $("draftFile").addEventListener("change", updateUploadBtn);
-
-  function updateUploadBtn() {
-    const orig = $("originalFile").files.length > 0;
-    const draft = $("draftFile").files.length > 0;
-    uploadBtn.disabled = !(orig && draft);
-    if (orig) {
-      $("originalFileInfo").textContent = $("originalFile").files[0].name;
-    } else {
-      $("originalFileInfo").textContent = "";
+  const fileAreas = [
+    { inputId: "originalFile", areaId: "originalFileArea", infoId: "originalFileInfo", clearId: "originalFileArea" },
+    { inputId: "draftFile", areaId: "draftFileArea", infoId: "draftFileInfo", clearId: "draftFileArea" },
+  ];
+  fileAreas.forEach(({ inputId, areaId, infoId, clearId }) => {
+    const input = $("#" + inputId);
+    input.addEventListener("change", () => {
+      const file = input.files.length > 0 ? input.files[0] : null;
+      setFileInfo(areaId, infoId, file, inputId === "originalFile" ? "원본 파일을 선택하거나 아래 텍스트로 직접 입력하세요" : "초안 파일을 선택하거나 아래 텍스트로 직접 입력하세요");
+      uploadBtn.disabled = !($("#originalFile").files.length > 0 && $("#draftFile").files.length > 0);
+    });
+  });
+  document.addEventListener("click", (e) => {
+    if (e.target.matches('[data-clear]')) {
+      const areaId = e.target.getAttribute("data-clear");
+      const input = $("#" + areaId.replace("Area", "") + "File");
+      input.value = "";
+      input.dispatchEvent(new Event("change"));
     }
-    if (draft) {
-      $("draftFileInfo").textContent = $("draftFile").files[0].name;
-    } else {
-      $("draftFileInfo").textContent = "";
-    }
-  }
+  });
 
-  // 업로드 & 검수
   uploadBtn.addEventListener("click", async () => {
-    const origFile = $("originalFile").files[0];
-    const draftFile = $("draftFile").files[0];
+    const origFile = $("#originalFile").files[0];
+    const draftFile = $("#draftFile").files[0];
     if (!origFile || !draftFile) return;
-
-    showProgress("파일을 업로드 중입니다...");
+    showProgress("파일을 업로드 중입니다...", false, 0);
     try {
       const form = new FormData();
       form.append("original", origFile);
       form.append("draft", draftFile);
       const res = await fetch("/api/upload", { method: "POST", body: form });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "업로드 실패");
-      }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "업로드 실패"); }
       const data = await res.json();
       currentOriginalId = data.original_id;
       currentDraftId = data.draft_id;
       await runCheck(data.original_id, data.draft_id);
     } catch (e) {
-      showProgress(e.message, true);
+      showProgress(e.message, true, 0);
     }
   });
 
-  // 텍스트로 검수
   checkFromTextBtn.addEventListener("click", async () => {
-    const origText = $("originalText").value.trim();
-    const draftText = $("draftText").value.trim();
-    if (!origText || !draftText) {
-      alert("원본과 초안을 모두 입력해주세요.");
-      return;
-    }
+    const origText = $("#originalText").value.trim();
+    const draftText = $("#draftText").value.trim();
+    if (!origText || !draftText) { alert("원본과 초안을 모두 입력해주세요."); return; }
     currentOriginalText = origText;
     currentDraftText = draftText;
-
-    showProgress("텍스트를 업로드 중입니다...");
+    showProgress("텍스트를 업로드 중입니다...", false, 0);
     try {
       const form = new FormData();
       form.append("original", new File([origText], "original.txt", { type: "text/plain" }), "original.txt");
       form.append("draft", new File([draftText], "draft.txt", { type: "text/plain" }), "draft.txt");
       const res = await fetch("/api/upload", { method: "POST", body: form });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "업로드 실패");
-      }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "업로드 실패"); }
       const data = await res.json();
       currentOriginalId = data.original_id;
       currentDraftId = data.draft_id;
       await runCheck(data.original_id, data.draft_id);
     } catch (e) {
-      showProgress(e.message, true);
+      showProgress(e.message, true, 0);
     }
   });
 
   async function runCheck(origId, draftId) {
-    showProgress("에이전트가 원본과 초안을 대조 중입니다... (Solar Pro 4 + cited figure check 스킬 호출)");
+    showProgress("에이전트가 원본과 초안을 대조 중입니다... (Solar Pro 4 + cited figure check 스킬 호출)", false, 0);
     try {
       const res = await fetch("/api/check", {
         method: "POST",
@@ -413,9 +512,7 @@
         throw new Error(err.detail || "검수 실패");
       }
       const data = await res.json();
-      if (data.status === "error") {
-        throw new Error(data.error || "검수 중 오류");
-      }
+      if (data.status === "error") throw new Error(data.error || "검수 중 오류");
       currentResults = data.results || [];
       currentFixedText = data.fixed_text || null;
       currentMemoryData = data.memory_data || null;
@@ -424,9 +521,10 @@
       updateDownloadButtons();
       updateMemoryPreview();
       resultsSection.classList.remove("hidden");
+      clearProgress();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
-      showProgress(e.message, true);
+      showProgress(e.message, true, 0);
     }
   }
 
@@ -438,26 +536,17 @@
       downloadFixedBtn.disabled = true;
       downloadInfo.textContent = "";
     }
-    if (currentMemoryData) {
-      downloadMemoryBtn.disabled = false;
-    } else {
-      downloadMemoryBtn.disabled = true;
-    }
+    downloadMemoryBtn.disabled = !currentMemoryData;
   }
 
   function updateMemoryPreview() {
-    if (currentMemoryData) {
-      memoryPreview.textContent = JSON.stringify(currentMemoryData, null, 2);
-    } else {
-      memoryPreview.textContent = "";
-    }
+    memoryPreview.textContent = currentMemoryData ? JSON.stringify(currentMemoryData, null, 2) : "";
   }
 
   function renderResults(data) {
     resultsStatus.textContent = data.status === "done" ? "검수 완료" : data.status;
     resultsStatus.className = "status-badge " + (data.status === "done" ? "ok" : "err");
     elapsedEl.textContent = data.elapsed_seconds ? `(${data.elapsed_seconds}초)` : "";
-
     resultsBody.innerHTML = "";
     currentResults.forEach((r, idx) => {
       const tr = document.createElement("tr");
@@ -469,99 +558,103 @@
         <td><span class="judgment ${judgmentClass}">${escapeHtml(r.judgment)}</span></td>
         <td>${escapeHtml(r.basis || "—")}</td>
         <td>${r.correction_suggestion ? escapeHtml(r.correction_suggestion) : "—"}</td>
-        <td style="text-align: center;">
-          <input type="checkbox" ${r.verified ? "checked" : ""} data-idx="${idx}">
-        </td>
+        <td style="text-align:center;"><input type="checkbox" ${r.verified ? "checked" : ""} data-idx="${idx}"></td>
       `;
       resultsBody.appendChild(tr);
     });
-
     const calcItems = currentResults.filter(r => r.calculation);
-    if (calcItems.length) {
-      calcNote.textContent = "계산 인용 검증: " + calcItems.map(r => `${r.item}: ${r.calculation}`).join("; ");
-    } else {
-      calcNote.textContent = "";
-    }
-
+    calcNote.textContent = calcItems.length ? "계산 인용 검증: " + calcItems.map(r => `${r.item}: ${r.calculation}`).join("; ") : "";
     resultsBody.querySelectorAll("input[type=checkbox]").forEach(cb => {
-      cb.addEventListener("change", async (e) => {
-        const idx = parseInt(e.target.dataset.idx, 10);
-        currentResults[idx].verified = e.target.checked;
+      cb.addEventListener("change", (e) => {
+        currentResults[parseInt(e.target.dataset.idx, 10)].verified = e.target.checked;
       });
     });
   }
 
   function judgmentClassFor(j) {
-    if (j === "일치") return "match";
-    if (j === "불일치") return "mismatch";
-    if (j === "값은 있으나 항목 대응이 다름") return "different-item";
-    if (j === "원본에 없음") return "not-in-source";
-    if (j === "확인 불가") return "unverifiable";
-    return "";
+    return {
+      "일치": "match",
+      "불일치": "mismatch",
+      "값은 있으나 항목 대응이 다름": "different-item",
+      "원본에 없음": "not-in-source",
+      "확인 불가": "unverifiable"
+    }[j] || "";
+  }
+
+  function parseKeyValue(text) {
+    const map = {};
+    text.split("\n").forEach(line => {
+      const idx = line.indexOf(":");
+      if (idx > 0) {
+        const key = line.slice(0, idx).trim();
+        const val = line.slice(idx + 1).trim();
+        if (key) map[key] = val;
+      }
+    });
+    return map;
   }
 
   function renderBeforeAfter() {
-    const origLines = currentOriginalText.split("\n");
-    const draftLines = currentDraftText.split("\n");
-    const sourceMap = {};
-    origLines.forEach(line => {
-      if (line.includes(":")) {
-        const [k, ...v] = line.split(":");
-        sourceMap[k.trim()] = v.join(":").trim();
-      }
+    const origMap = parseKeyValue(currentOriginalText);
+    const draftMap = parseKeyValue(currentDraftText);
+    const sortedKeys = Object.keys(origMap).slice().sort((a, b) => {
+      const an = a.replace(/^.*?(\d+)\s*월/, (m, d) => d).replace(/[^0-9]/g, "");
+      const bn = b.replace(/^.*?(\d+)\s*월/, (m, d) => d).replace(/[^0-9]/g, "");
+      const na = an ? parseInt(an, 10) : 999;
+      const nb = bn ? parseInt(bn, 10) : 999;
+      if (na !== nb) return na - nb;
+      return a.localeCompare(b);
     });
-
-    let beforeHtml = "";
-    let afterHtml = "";
-    draftLines.forEach(line => {
-      const stripped = line.trim();
-      if (!stripped || stripped.startsWith("#")) {
-        beforeHtml += escapeHtml(line) + "\n";
-        afterHtml += escapeHtml(line) + "\n";
-        return;
-      }
-      if (stripped.includes(":")) {
-        const [k, ...v] = stripped.split(":");
-        const key = k.trim();
-        const val = v.join(":").trim();
-        let fixedVal = val;
-        let isModified = false;
-        for (const r of currentResults) {
-          if (r.item === key && (r.judgment === "불일치" || r.judgment === "값은 있으나 항목 대응이 다름" || r.judgment === "원본에 없음")) {
-            if (r.source_value && r.source_value !== "None") {
-              fixedVal = r.source_value;
-              isModified = true;
-            }
-            break;
-          }
-        }
-        if (isModified) {
-          beforeHtml += escapeHtml(key) + ": " + `<span class="highlight-red">${escapeHtml(val)}</span>` + "\n";
-          afterHtml += escapeHtml(key) + ": " + `<span class="highlight-blue">${escapeHtml(fixedVal)}</span>` + "\n";
-        } else {
-          beforeHtml += escapeHtml(line) + "\n";
-          afterHtml += escapeHtml(line) + "\n";
-        }
+    let beforeHtml = [], afterHtml = [];
+    const processed = new Set();
+    for (const key of sortedKeys) {
+      if (processed.has(key)) continue;
+      processed.add(key);
+      const origVal = origMap[key] || "";
+      const draftVal = draftMap[key] || "";
+      const result = currentResults.find(r => r.item === key);
+      const isModified = result && (result.judgment === "불일치" || result.judgment === "값은 있으나 항목 대응이 다름" || result.judgment === "원본에 없음")
+        && result.source_value && result.source_value !== "None" && result.source_value !== draftVal;
+      const fixedVal = isModified ? result.source_value : draftVal;
+      if (isModified) {
+        beforeHtml.push(`${escapeHtml(key)}: <span class="highlight-red">${escapeHtml(draftVal)}</span>`);
+        afterHtml.push(`${escapeHtml(key)}: <span class="highlight-blue">${escapeHtml(fixedVal)}</span>`);
       } else {
-        beforeHtml += escapeHtml(line) + "\n";
-        afterHtml += escapeHtml(line) + "\n";
+        beforeHtml.push(escapeHtml(draftLine(key, draftVal)));
+        afterHtml.push(escapeHtml(draftLine(key, fixedVal)));
       }
-    });
-
-    beforeView.innerHTML = beforeHtml || "<em style='color: var(--muted);'>초안이 없습니다.</em>";
-    afterView.innerHTML = afterHtml || "<em style='color: var(--muted);'>수정본이 없습니다.</em>";
+    }
+    const draftKeys = new Set(Object.keys(draftMap));
+    for (const key of sortedKeys) {
+      if (processed.has(key)) continue;
+      processed.add(key);
+      if (draftMap[key] !== undefined) {
+        beforeHtml.push(escapeHtml(draftLine(key, draftMap[key])));
+        afterHtml.push(escapeHtml(draftLine(key, draftMap[key])));
+      }
+    }
+    const origOnly = sortedKeys.filter(k => !draftKeys.has(k));
+    for (const key of origOnly) {
+      if (processed.has(key)) continue;
+      processed.add(key);
+      beforeHtml.push("");
+      afterHtml.push(`<em style="color:var(--muted);">(원본 항목 "${escapeHtml(key)}"은 초안에 없음)</em>`);
+    }
+    beforeView.innerHTML = beforeHtml.join("\n") || '<em style="color:var(--muted);">초안이 없습니다.</em>';
+    afterView.innerHTML = afterHtml.join("\n") || '<em style="color:var(--muted);">수정본이 없습니다.</em>';
   }
 
-  // 다운로드 — 서버리스 무상태 대응: 저장된 데이터로 직접 다운로드
+  function draftLine(key, val) {
+    return val ? `${key}: ${val}` : key;
+  }
+
   downloadFixedBtn.addEventListener("click", () => {
     if (!currentFixedText) return;
     const blob = new Blob([currentFixedText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "mabc_fixed_draft.txt";
-    document.body.appendChild(a);
-    a.click();
+    a.href = url; a.download = "mabc_fixed_draft.txt";
+    document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 100);
   });
@@ -571,23 +664,18 @@
     const blob = new Blob([JSON.stringify(currentMemoryData, null, 2)], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "mabc_memory.json";
-    document.body.appendChild(a);
-    a.click();
+    a.href = url; a.download = "mabc_memory.json";
+    document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 100);
   });
 
-  // 기억 파일 재업로드
-  memoryFileInput.addEventListener("change", () => {
-    rerunBtn.disabled = memoryFileInput.files.length === 0;
-  });
+  memoryFileInput.addEventListener("change", () => { rerunBtn.disabled = memoryFileInput.files.length === 0; });
 
   rerunBtn.addEventListener("click", async () => {
     const file = memoryFileInput.files[0];
     if (!file) return;
-    showProgress("기억 파일을 분석하고 재검증 대상을 축소 중입니다...");
+    showProgress("기억 파일을 분석하고 재검증 대상을 축소 중입니다...", false, 0);
     try {
       const text = await file.text();
       const memData = JSON.parse(text);
@@ -596,44 +684,35 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memory_data: memData }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "재검증 실패");
-      }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "재검증 실패"); }
       const data = await res.json();
-      rerunResult.innerHTML = `
-        <span class="status-badge ok">재검증 완료</span>
-        &nbsp; 재검증 대상: ${data.remaining_checks}건 &nbsp;|&nbsp; 건너뛴 건수: ${data.skipped_checks}건
-      `;
+      rerunResult.innerHTML = `<span class="status-badge ok">재검증 완료</span> &nbsp; 재검증 대상: ${data.remaining_checks}건 &nbsp;|&nbsp; 건너뛴 건수: ${data.skipped_checks}건`;
       if (currentMemoryData) {
         currentMemoryData["reverified_at"] = new Date().toISOString();
         updateMemoryPreview();
       }
+      clearProgress();
     } catch (e) {
-      rerunResult.innerHTML = `<span class="status-badge err">오류</span> ${escapeHtml(e.message)}`;
+      showProgress(e.message, true, 0);
     }
   });
 
-  function showProgress(msg, isError) {
-    progressEl.classList.remove("hidden");
-    progressEl.textContent = msg;
-    progressEl.style.borderColor = isError ? "#fecaca" : "#bfdbfe";
-    progressEl.style.background = isError ? "#fef2f2" : "#eff6ff";
-    progressEl.style.color = isError ? "#991b1b" : "#1e40af";
-    if (!isError) {
-      uploadBtn.disabled = true;
-    }
-  }
-
   function escapeHtml(s) {
     if (s == null) return "";
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");
   }
+
+  ["originalText", "draftText"].forEach(id => {
+    const ta = $("#" + id);
+    ta.addEventListener("input", () => {
+      ta.style.height = "auto";
+      ta.style.height = ta.scrollHeight + "px";
+    });
+    setTimeout(() => {
+      ta.style.height = "auto";
+      ta.style.height = ta.scrollHeight + "px";
+    }, 0);
+  });
 })();
 </script>
 </body>
