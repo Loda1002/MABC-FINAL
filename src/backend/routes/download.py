@@ -13,7 +13,7 @@ def _ensure_memory_file(results: list[dict], fixed_text: str) -> Path:
     """기억 파일(memory.json)을 생성."""
     memory = {
         "version": "1.0",
-        "generated_at": str(__import__("datetime").datetime.now().isoformat()),
+        "generated_at": __import__("datetime").datetime.now().isoformat(),
         "results": results,
         "fixed_text": fixed_text,
     }
@@ -46,10 +46,8 @@ async def download_file(file_type: str):
         raise HTTPException(status_code=400, detail=f"알 수 없는 다운로드 유형: {file_type}. 'fixed' 또는 'memory'.")
 
 
-# 체크 결과를 바탕으로 고정 파일과 메모리 파일을 생성하는 헬퍼
 def generate_outputs(results: list[dict], original_text: str, draft_text: str):
     """check 결과를 받아 fixed_draft.txt와 memory.json을 생성하고 경로를 반환."""
-    # 초안 텍스트에서 불일치/항목대응 틀림/원본에 없음 항목을 수정한 텍스트 생성
     fixed_lines = []
     source_map: dict[str, str] = {}
     for line in original_text.splitlines():
@@ -66,7 +64,6 @@ def generate_outputs(results: list[dict], original_text: str, draft_text: str):
             key, _, val = stripped.partition(":")
             key = key.strip()
             val = val.strip()
-            # 수정 필요 판정 찾기
             fixed_val = val
             for r in results:
                 if r.get("item") == key and r.get("judgment") in ("불일치", "값은 있으나 항목 대응이 다름", "원본에 없음"):

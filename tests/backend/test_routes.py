@@ -115,7 +115,42 @@ class TestExample:
         assert len(data["expected_results"]) >= 5
 
 
-class TestRerun:
+    def test_download_after_check(self):
+        """check 실행 후 다운로드가 가능한지 확인."""
+        files = {
+            "original": ("original.txt", "품목: 가상품목\n2025년 12월 생산량: 12000만원\n".encode(), "text/plain"),
+            "draft": ("draft.txt", "품목: 가상품목\n2025년 12월 생산량: 1.2억\n".encode(), "text/plain"),
+        }
+        up = client.post("/api/upload", files=files)
+        assert up.status_code == 200
+        uid = up.json()
+        ch = client.post("/api/check", json={"original_id": uid["original_id"], "draft_id": uid["draft_id"]})
+        assert ch.status_code == 200
+        assert ch.json()["status"] == "done"
+        # 이제 다운로드 가능
+        f = client.get("/api/download/fixed")
+        assert f.status_code == 200
+        m = client.get("/api/download/memory")
+        assert m.status_code == 200
+
+    def test_rerun_after_check(self):
+        """check 후 기억 파일을 올리면 재검증 건수가 축소되는지 확인."""
+        files = {
+            "original": ("original.txt", "key: value\n".encode(), "text/plain"),
+            "draft": ("draft.txt", "key: value2\n".encode(), "text/plain"),
+        }
+        up = client.post("/api/upload", files=files)
+        assert up.status_code == 200
+        uid = up.json()
+        ch = client.post("/api/check", json={"original_id": uid["original_id"], "draft_id": uid["draft_id"]})
+        assert ch.status_code == 200
+        assert ch.json()["status"] == "done"
+        # 기억 파일 다운로드 후 재업로드
+        mem_resp = client.get("/api/download/memory")
+        mem_data = mem_resp.json()
+        rer = client.post("/api/rerun", json={"memory_data": mem_data})
+        assert rer.status_code == 200
+        assert rer.json()["status"] == "ok"
     def test_rerun_with_memory(self):
         """rerun shrinks re-verification targets from memory file."""
         response = client.post(

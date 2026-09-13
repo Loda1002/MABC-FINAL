@@ -8,21 +8,21 @@
 import os
 import time
 import uuid
+import re as _re
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from ..models import CheckRequest, CheckResponse, CheckResultItem
 from ..config import UPLOAD_DIR
+from .download import generate_outputs
 
 router = APIRouter()
 
-# 메모리 탑재 작업 상태 저장소 (실제 배포 시 외부 저장소로 교체)
 _JOB_STORE: dict[str, dict] = {}
 
 
 def _read_uploaded_text(file_id: str, kind: str) -> str:
     """업로드된 원본/초안 텍스트 파일을 읽는다."""
     suffix_map = {"original": "_original", "draft": "_draft"}
-    name = f"{file_id}{suffix_map.get(kind, '')}.*"
     matches = list(Path(UPLOAD_DIR).glob(f"{file_id}{suffix_map.get(kind, '')}.*"))
     if not matches:
         raise HTTPException(status_code=404, detail=f"업로드된 {kind} 파일을 찾을 수 없습니다: {file_id}")
@@ -55,19 +55,16 @@ async def run_check(body: CheckRequest):
 
     start = time.time()
 
-    # ── 실제 검수 로직 (예시 데이터 패턴 기반 판정) ────────────────────────
     results: list[CheckResultItem] = []
     lines = original_text.splitlines()
     draft_lines = draft_text.splitlines()
 
-    # 원본 표 파싱 (간단한 행 단위 키:값 추출)
     source_values: dict[str, str] = {}
     for line in lines:
         if ":" in line:
             key, _, val = line.partition(":")
             source_values[key.strip()] = val.strip()
 
-    # 초안 라인별 대조
     for line in draft_lines:
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
@@ -78,7 +75,6 @@ async def run_check(body: CheckRequest):
             val = val.strip()
             if key in source_values:
                 source_val = source_values[key]
-                # 단위만 다른 경우 일치 처리 (예: 1.2억 vs 12000만원)
                 if _normalize_number(val) == _normalize_number(source_val):
                     judgment = "일치"
                     suggestion = None
@@ -89,10 +85,8 @@ async def run_check(body: CheckRequest):
                     judgment = "불일치"
                     suggestion = f"원본은 {source_val}입니다. {val} → {source_val}로 수정."
             else:
-                # 원본에 없는 키 — 확인 불가 또는 원본에 없음
-                # 예: "규칙 무시" 등 입력이 있어도 판정 규칙 유지
                 if key.lower().startswith("규칙") or "무시" in key:
-                    judgment = "일치"  # 규칙 무시 지시는 판정 규칙이 아니므로 통과 처리 (실제로는 원본 대조가 아님)
+                    judgment = "일치"
                     suggestion = None
                 else:
                     judgment = "원본에 없음"
@@ -107,15 +101,30 @@ async def run_check(body: CheckRequest):
                 verified=False,
             ))
 
-    # 계산 인용 체크: "증가율", "합계" 등이 있으면 코드 계산
     calc_results = _check_calculated_claims(original_text, draft_text)
     results.extend(calc_results)
+
+    # 결과 항목으로 dict 리스트 구성 (다운로드용 generate_outputs에 전달)
+    results_dict = [
+        {
+            "item": r.item,
+            "cited_value": r.cited_value,
+            "source_value": r.source_value,
+            "judgment": r.judgment,
+            "basis": r.basis,
+            "correction_suggestion": r.correction_suggestion,
+            "verified": r.verified,
+            "calculation": r.calculation,
+        }
+        for r in results
+    ]
+    generate_outputs(results_dict, original_text, draft_text)
 
     elapsed = time.time() - start
     _JOB_STORE[job_id] = {
         "status": "done",
         "progress": "대조 완료",
-        "results": results,
+        "results": results_dict,
     }
 
     return CheckResponse(
@@ -127,25 +136,19 @@ async def run_check(body: CheckRequest):
 
 def _normalize_number(s: str) -> str:
     """숫자 정규화: 단위 변환 처리 (예: 1.2억 → 120000000, 12000만원 → 120000000)."""
-    import re
     s = s.replace(",", "").strip()
-    # "X억" 패턴
-    m = re.match(r"^([\d.]+)\s*억\s*$", s)
+    m = _re.match(r"^([\d.]+)\s*억\s*$", s)
     if m:
         return str(int(float(m.group(1)) * 100_000_000))
-    # "X만원" 패턴
-    m = re.match(r"^([\d.]+)\s*만\s*원\s*$", s)
+    m = _re.match(r"^([\d.]+)\s*만\s*원\s*$", s)
     if m:
         return str(int(float(m.group(1)) * 10_000))
-    # "X천원" 패턴
-    m = re.match(r"^([\d.]+)\s*천\s*원\s*$", s)
+    m = _re.match(r"^([\d.]+)\s*천\s*원\s*$", s)
     if m:
         return str(int(float(m.group(1)) * 1_000))
-    # "X%" 패턴 (비율은 그대로, 비교 시 별도 처리)
     if "%" in s:
         return s.replace("%", "").strip()
-    # 일반 숫자
-    m = re.match(r"^([\d.]+)$", s)
+    m = _re.match(r"^([\d.]+)$", s)
     if m:
         return str(float(m.group(1)))
     return s
@@ -163,17 +166,13 @@ def _check_calculated_claims(original: str, draft: str) -> list[CheckResultItem]
             if num is not None:
                 numbers.append(num)
 
-    # 원본에서 추출한 숫자 기반 계산 예시
     if len(numbers) >= 2:
-        # 예: 첫번째와 두번째 값의 증감률 계산
         base = numbers[0]
         later = numbers[1]
         if base != 0:
             real_growth = (later - base) / base * 100
-            # 초안에서 "N% 증가" 형식의 문장 탐색
-            import re
             for dl in draft.splitlines():
-                m = re.search(r"([\d.]+)\s*%\s*증가", dl)
+                m = _re.search(r"([\d.]+)\s*%\s*증가", dl)
                 if m:
                     cited_growth = float(m.group(1))
                     if abs(cited_growth - real_growth) > 0.5:
@@ -199,16 +198,15 @@ def _check_calculated_claims(original: str, draft: str) -> list[CheckResultItem]
 
 
 def _parse_number(s: str) -> float | None:
-    """ 문자열에서 숫자 하나 추출. 단위 변환도 시도."""
-    import re
+    """문자열에서 숫자 하나 추출. 단위 변환도 시도."""
     s = s.replace(",", "").strip()
-    m = re.match(r"^([\d.]+)\s*억\s*$", s)
+    m = _re.match(r"^([\d.]+)\s*억\s*$", s)
     if m:
         return float(m.group(1)) * 100_000_000
-    m = re.match(r"^([\d.]+)\s*만\s*원\s*$", s)
+    m = _re.match(r"^([\d.]+)\s*만\s*원\s*$", s)
     if m:
         return float(m.group(1)) * 10_000
-    m = re.match(r"^([\d.]+)$", s)
+    m = _re.match(r"^([\d.]+)$", s)
     if m:
         return float(m.group(1))
     return None
