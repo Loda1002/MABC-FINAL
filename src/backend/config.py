@@ -9,6 +9,6 @@ SOLAR_PRO4_API_KEY = os.environ.get("SOLAR_PRO4_API_KEY", "")
 SOLAR_PRO4_BASE_URL = os.environ.get("SOLAR_PRO4_BASE_URL", "https://api.upstage.ai/v1")
 SOLAR_PRO4_MODEL = os.environ.get("SOLAR_PRO4_MODEL", "solar-pro4")
 
-# 업로드 파일 저장 경로 (프로젝트 폴더 내부)
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+# 업로드 파일 저장 경로 (Vercel 서버리스 환경에서는 /tmp만 쓰기 가능)
+UPLOAD_DIR = os.path.join("/tmp", "mabc-uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
