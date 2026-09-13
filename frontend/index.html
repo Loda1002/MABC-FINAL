@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MABC-FINAL — AI 요약 초안 vs 원본 대조 검수</title>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #3b82f6;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .container { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-top: 0; }
+  h2 { font-size: 1.125rem; margin-top: 24px; margin-bottom: 8px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .field { flex: 1; min-width: 200px; }
+  label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; color: var(--muted); }
+  input[type="file"], textarea {
+    width: 100%;
+    font-size: 0.875rem;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+  }
+  textarea { min-height: 120px; font-family: "SF Mono", Consolas, monospace; resize: vertical; }
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary { background: #64748b; }
+  button.danger { background: var(--red); }
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-top: 8px;
+  }
+  .results-table th, .results-table td {
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .results-table th { background: #f1f5f9; font-weight: 500; color: var(--muted); }
+  .judgment { font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; display: inline-block; }
+  .judgment.match { background: #dcfce7; color: #166534; }
+  .judgment.mismatch { background: #fee2e2; color: #991b1b; }
+  .judgment.different-item { background: #fef3c7; color: #92400e; }
+  .judgment.not-in-source { background: #f1f5f9; color: #475569; }
+  .judgment.unverifiable { background: #e0e7ff; color: #3730a3; }
+  .progress {
+    padding: 12px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    color: #1e40af;
+  }
+  .before-after {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .before-after > div {
+    flex: 1;
+    min-width: 280px;
+  }
+  .before-after pre {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.8125rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.6;
+  }
+  .highlight-red { background: #fee2e2; color: #991b1b; border-radius: 2px; padding: 0 2px; }
+  .highlight-blue { background: #dbeafe; color: #1e40af; border-radius: 2px; padding: 0 2px; }
+  .notice {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius);
+    padding: 12px;
+    font-size: 0.8125rem;
+    color: #92400e;
+    margin-top: 16px;
+  }
+  .download-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: #e2e8f0;
+    color: var(--muted);
+  }
+  .status-badge.ok { background: #dcfce7; color: #166534; }
+  .status-badge.err { background: #fee2e2; color: #991b1b; }
+  .hidden { display: none; }
+  .files-list { font-size: 0.8125rem; color: var(--muted); margin-top: 4px; }
+  .rerun-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .memory-preview {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.75rem;
+    max-height: 120px;
+    overflow: auto;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>MABC-FINAL &mdash; AI 요약 초안 vs 원본 대조 검수</h1>
+  <p style="color: var(--muted); font-size: 0.875rem;">
+    원본 자료와 AI 요약 초안을 올려 수치를 대조합니다. Solar Pro 4 기반 cited figure check 스킬을 호출합니다.
+  </p>
+
+  <div id="progress" class="progress hidden"></div>
+
+  <div class="card">
+    <h2>1. 파일 업로드</h2>
+    <div class="row">
+      <div class="field">
+        <label for="originalFile">원본 자료 (xlsx, 텍스트 표, 텍스트, md, json)</label>
+        <input type="file" id="originalFile" accept=".xlsx,.xls,.txt,.md,.json">
+        <div class="files-list" id="originalFileInfo"></div>
+      </div>
+      <div class="field">
+        <label for="draftFile">검토 대상 초안</label>
+        <input type="file" id="draftFile" accept=".xlsx,.xls,.txt,.md,.json">
+        <div class="files-list" id="draftFileInfo"></div>
+      </div>
+    </div>
+    <div style="margin-top: 12px;">
+      <button id="exampleBtn" class="secondary" type="button">예시 데이터로 채우기</button>
+      <button id="uploadBtn" disabled type="button">업로드 &amp; 검수 시작</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="textInputSection">
+    <h2>1b. 텍스트 직접 입력</h2>
+    <div class="row">
+      <div class="field">
+        <label>원본 텍스트</label>
+        <textarea id="originalText" placeholder="원본 자료를 텍스트로 붙여넣기"></textarea>
+      </div>
+      <div class="field">
+        <label>초안 텍스트</label>
+        <textarea id="draftText" placeholder="검토 대상 초안을 텍스트로 붙여넣기"></textarea>
+      </div>
+    </div>
+    <div style="margin-top: 12px;">
+      <button id="checkFromTextBtn" type="button">텍스트로 검수 시작</button>
+    </div>
+  </div>
+
+  <div id="resultsSection" class="hidden">
+    <div class="card">
+      <h2>2. 검수 결과</h2>
+      <span id="resultsStatus" class="status-badge"></span>
+      <span id="elapsed" style="margin-left: 8px; font-size: 0.8125rem; color: var(--muted);"></span>
+      <table class="results-table" id="resultsTable">
+        <thead>
+          <tr>
+            <th style="width: 22%;">항목</th>
+            <th style="width: 14%;">인용 값</th>
+            <th style="width: 14%;">원본 값</th>
+            <th style="width: 12%;">판정</th>
+            <th style="width: 20%;">근거</th>
+            <th style="width: 14%;">수정 제안</th>
+            <th style="width: 4%;">확인</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+      <div id="calcNote" style="margin-top: 8px; font-size: 0.8125rem; color: var(--muted);"></div>
+    </div>
+
+    <div class="card">
+      <h2>3. Before / After</h2>
+      <div class="before-after">
+        <div>
+          <label style="font-size: 0.8125rem; color: var(--muted); font-weight: 500;">Before (초안 · 문제 부분 빨강)</label>
+          <pre id="beforeView"></pre>
+        </div>
+        <div>
+          <label style="font-size: 0.8125rem; color: var(--muted); font-weight: 500;">After (수정본 · 수정 부분 파랑)</label>
+          <pre id="afterView"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. 다운로드</h2>
+      <div class="download-row">
+        <button id="downloadFixedBtn" type="button">고쳐진 파일 다운로드</button>
+        <button id="downloadMemoryBtn" type="button">기억 파일(memory.json) 다운로드</button>
+      </div>
+    </div>
+
+    <div class="card rerun-section">
+      <h2>5. 기억 파일 재업로드 &mdash; 재검증 대상 축소</h2>
+      <p style="font-size: 0.8125rem; color: var(--muted); margin-top: 4px;">
+        이전 버전 검수 결과가 담긴 memory.json을 다시 올리면, 이미 확인된 항목은 재검증 대상에서 제외됩니다.
+      </p>
+      <div class="row">
+        <div class="field">
+          <label for="memoryFile">기억 파일 업로드</label>
+          <input type="file" id="memoryFile" accept=".json">
+        </div>
+        <div class="field" style="display: flex; align-items: flex-end;">
+          <button id="rerunBtn" class="secondary" type="button" disabled>재검증 실행</button>
+        </div>
+      </div>
+      <div id="rerunResult" style="margin-top: 8px; font-size: 0.875rem;"></div>
+      <div style="margin-top: 12px;">
+        <label style="font-size: 0.8125rem; color: var(--muted); font-weight: 500;">현재 기억 파일 미리보기</label>
+        <pre id="memoryPreview" class="memory-preview"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="notice">
+    <strong>고지:</strong> 이 서비스는 LLM(Solar Pro 4)을 활용한 검수 도구입니다.
+    자동 판정 결과에 오류가 있을 수 있으므로, 중요 문서 검수는 반드시 사람이 최종 확인해야 합니다.
+    판정은cited figure check 스킬의 5개 라벨(일치 / 불일치 / 값은 있으나 항목 대응이 다름 / 원본에 없음 / 확인 불가) 범위 내에서만 이루어집니다.
+    이미지, URL, PDF는 입력으로 받지 않으며, 수치 계산은 코드가 직접 수행합니다.
+  </div>
+
+  <div style="margin-top: 24px; font-size: 0.8125rem; color: var(--muted);">
+    <a href="/docs" target="_blank">OpenAPI 문서</a> &middot;
+    <a href="/api/health" target="_blank">건강 체크</a>
+  </div>
+</div>
+
+<script>
+(function() {
+  const $ = (id) => document.getElementById(id);
+  const uploadBtn = $("uploadBtn");
+  const exampleBtn = $("exampleBtn");
+  const checkFromTextBtn = $("checkFromTextBtn");
+  const progressEl = $("progress");
+  const resultsSection = $("resultsSection");
+  const resultsBody = $("resultsBody");
+  const resultsStatus = $("resultsStatus");
+  const elapsedEl = $("elapsed");
+  const beforeView = $("beforeView");
+  const afterView = $("afterView");
+  const calcNote = $("calcNote");
+  const downloadFixedBtn = $("downloadFixedBtn");
+  const downloadMemoryBtn = $("downloadMemoryBtn");
+  const rerunBtn = $("rerunBtn");
+  const rerunResult = $("rerunResult");
+  const memoryPreview = $("memoryPreview");
+  const memoryFileInput = $("memoryFile");
+
+  let currentJobId = null;
+  let currentResults = [];
+  let currentOriginalText = "";
+  let currentDraftText = "";
+  let currentOriginalId = null;
+  let currentDraftId = null;
+
+  // 예시 버튼
+  exampleBtn.addEventListener("click", async () => {
+    try {
+      const res = await fetch("/api/example", { method: "POST" });
+      if (!res.ok) throw new Error("예시 데이터를 가져오지 못했습니다.");
+      const data = await res.json();
+      $("originalText").value = data.original_text;
+      $("draftText").value = data.draft_text;
+      $("originalFile").value = "";
+      $("draftFile").value = "";
+      $("originalFileInfo").textContent = "";
+      $("draftFileInfo").textContent = "";
+      uploadBtn.disabled = true;
+      $("textInputSection").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      alert(e.message);
+    }
+  });
+
+  // 파일 선택 시 버튼 활성화
+  $("originalFile").addEventListener("change", updateUploadBtn);
+  $("draftFile").addEventListener("change", updateUploadBtn);
+
+  function updateUploadBtn() {
+    const orig = $("originalFile").files.length > 0;
+    const draft = $("draftFile").files.length > 0;
+    uploadBtn.disabled = !(orig && draft);
+    if (orig) {
+      $("originalFileInfo").textContent = $("originalFile").files[0].name;
+    } else {
+      $("originalFileInfo").textContent = "";
+    }
+    if (draft) {
+      $("draftFileInfo").textContent = $("draftFile").files[0].name;
+    } else {
+      $("draftFileInfo").textContent = "";
+    }
+  }
+
+  // 업로드 & 검수
+  uploadBtn.addEventListener("click", async () => {
+    const origFile = $("originalFile").files[0];
+    const draftFile = $("draftFile").files[0];
+    if (!origFile || !draftFile) return;
+
+    showProgress("파일을 업로드 중입니다...");
+    try {
+      const form = new FormData();
+      form.append("original", origFile);
+      form.append("draft", draftFile);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "업로드 실패");
+      }
+      const data = await res.json();
+      currentOriginalId = data.original_id;
+      currentDraftId = data.draft_id;
+      await runCheck(data.original_id, data.draft_id);
+    } catch (e) {
+      showProgress(e.message, true);
+    }
+  });
+
+  // 텍스트로 검수
+  checkFromTextBtn.addEventListener("click", async () => {
+    const origText = $("originalText").value.trim();
+    const draftText = $("draftText").value.trim();
+    if (!origText || !draftText) {
+      alert("원본과 초안을 모두 입력해주세요.");
+      return;
+    }
+    currentOriginalText = origText;
+    currentDraftText = draftText;
+
+    // 텍스트는 임시로 /api/upload에 FormData로 보내지 않고, 직접 check 호출에 사용할 수 있도록
+    // 백엔드에 텍스트 올리기용 엔드포인트가 없으므로, 먼저 텍스트 파일을 업로드한다.
+    showProgress("텍스트를 업로드 중입니다...");
+    try {
+      const form = new FormData();
+      form.append("original", new File([origText], "original.txt", { type: "text/plain" }), "original.txt");
+      form.append("draft", new File([draftText], "draft.txt", { type: "text/plain" }), "draft.txt");
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "업로드 실패");
+      }
+      const data = await res.json();
+      currentOriginalId = data.original_id;
+      currentDraftId = data.draft_id;
+      await runCheck(data.original_id, data.draft_id);
+    } catch (e) {
+      showProgress(e.message, true);
+    }
+  });
+
+  async function runCheck(origId, draftId) {
+    showProgress("에이전트가 원본과 초안을 대조 중입니다... (Solar Pro 4 + cited figure check 스킬 호출)");
+    try {
+      const res = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ original_id: origId, draft_id: draftId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "검수 실패");
+      }
+      const data = await res.json();
+      if (data.status === "error") {
+        throw new Error(data.error || "검수 중 오류");
+      }
+      currentResults = data.results || [];
+      renderResults(data);
+      renderBeforeAfter();
+      resultsSection.classList.remove("hidden");
+      downloadFixedBtn.disabled = false;
+      downloadMemoryBtn.disabled = false;
+      // 메모리 파일 미리보기
+      try {
+        const memRes = await fetch("/api/download/memory");
+        if (memRes.ok) {
+          const memBlob = await memRes.blob();
+          const text = await memBlob.text();
+          memoryPreview.textContent = text;
+        }
+      } catch (e) { /* 무시 */ }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      showProgress(e.message, true);
+    }
+  }
+
+  function renderResults(data) {
+    resultsStatus.textContent = data.status === "done" ? "검수 완료" : data.status;
+    resultsStatus.className = "status-badge " + (data.status === "done" ? "ok" : "err");
+    elapsedEl.textContent = data.elapsed_seconds ? `(${data.elapsed_seconds}초)` : "";
+
+    resultsBody.innerHTML = "";
+    currentResults.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+      const judgmentClass = judgmentClassFor(r.judgment);
+      tr.innerHTML = `
+        <td>${escapeHtml(r.item)}</td>
+        <td>${escapeHtml(r.cited_value)}</td>
+        <td>${escapeHtml(r.source_value || "—")}</td>
+        <td><span class="judgment ${judgmentClass}">${escapeHtml(r.judgment)}</span></td>
+        <td>${escapeHtml(r.basis || "—")}</td>
+        <td>${r.correction_suggestion ? escapeHtml(r.correction_suggestion) : "—"}</td>
+        <td style="text-align: center;">
+          <input type="checkbox" ${r.verified ? "checked" : ""} data-idx="${idx}">
+        </td>
+      `;
+      resultsBody.appendChild(tr);
+    });
+
+    // 계산식 주석
+    const calcItems = currentResults.filter(r => r.calculation);
+    if (calcItems.length) {
+      calcNote.textContent = "계산 인용 검증: " + calcItems.map(r => `${r.item}: ${r.calculation}`).join("; ");
+    } else {
+      calcNote.textContent = "";
+    }
+
+    // 확인 체크박스 이벤트
+    resultsBody.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      cb.addEventListener("change", async (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        currentResults[idx].verified = e.target.checked;
+      });
+    });
+  }
+
+  function judgmentClassFor(j) {
+    if (j === "일치") return "match";
+    if (j === "불일치") return "mismatch";
+    if (j === "값은 있으나 항목 대응이 다름") return "different-item";
+    if (j === "원본에 없음") return "not-in-source";
+    if (j === "확인 불가") return "unverifiable";
+    return "";
+  }
+
+  function renderBeforeAfter() {
+    // 원본과 초안 텍스트에서 수정된 부분을 표시
+    const origLines = currentOriginalText.split("\n");
+    const draftLines = currentDraftText.split("\n");
+    const sourceMap = {};
+    origLines.forEach(line => {
+      if (line.includes(":")) {
+        const [k, ...v] = line.split(":");
+        sourceMap[k.trim()] = v.join(":").trim();
+      }
+    });
+
+    let beforeHtml = "";
+    let afterHtml = "";
+    draftLines.forEach(line => {
+      const stripped = line.trim();
+      if (!stripped || stripped.startsWith("#")) {
+        beforeHtml += escapeHtml(line) + "\n";
+        afterHtml += escapeHtml(line) + "\n";
+        return;
+      }
+      if (stripped.includes(":")) {
+        const [k, ...v] = stripped.split(":");
+        const key = k.trim();
+        const val = v.join(":").trim();
+        let fixedVal = val;
+        let isModified = false;
+        for (const r of currentResults) {
+          if (r.item === key && (r.judgment === "불일치" || r.judgment === "값은 있으나 항목 대응이 다름" || r.judgment === "원본에 없음")) {
+            if (r.source_value && r.source_value !== "None") {
+              fixedVal = r.source_value;
+              isModified = true;
+            }
+            break;
+          }
+        }
+        if (isModified) {
+          beforeHtml += escapeHtml(key) + ": " + `<span class="highlight-red">${escapeHtml(val)}</span>` + "\n";
+          afterHtml += escapeHtml(key) + ": " + `<span class="highlight-blue">${escapeHtml(fixedVal)}</span>` + "\n";
+        } else {
+          beforeHtml += escapeHtml(line) + "\n";
+          afterHtml += escapeHtml(line) + "\n";
+        }
+      } else {
+        beforeHtml += escapeHtml(line) + "\n";
+        afterHtml += escapeHtml(line) + "\n";
+      }
+    });
+
+    beforeView.innerHTML = beforeHtml || "<em style='color: var(--muted);'>초안이 없습니다.</em>";
+    afterView.innerHTML = afterHtml || "<em style='color: var(--muted);'>수정본이 없습니다.</em>";
+  }
+
+  // 다운로드
+  downloadFixedBtn.addEventListener("click", () => {
+    window.open("/api/download/fixed", "_blank");
+  });
+  downloadMemoryBtn.addEventListener("click", () => {
+    window.open("/api/download/memory", "_blank");
+  });
+
+  // 기억 파일 재업로드
+  memoryFileInput.addEventListener("change", () => {
+    rerunBtn.disabled = memoryFileInput.files.length === 0;
+  });
+
+  rerunBtn.addEventListener("click", async () => {
+    const file = memoryFileInput.files[0];
+    if (!file) return;
+    showProgress("기억 파일을 분석하고 재검증 대상을 축소 중입니다...");
+    try {
+      const text = await file.text();
+      const memData = JSON.parse(text);
+      const res = await fetch("/api/rerun", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memory_data: memData }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "재검증 실패");
+      }
+      const data = await res.json();
+      rerunResult.innerHTML = `
+        <span class="status-badge ok">재검증 완료</span>
+        &nbsp; 재검증 대상: ${data.remaining_checks}건 &nbsp;|&nbsp; 건너뛴 건수: ${data.skipped_checks}건
+      `;
+      // 기억 파일 미리보기 갱신
+      try {
+        const memRes = await fetch("/api/download/memory");
+        if (memRes.ok) {
+          const memBlob = await memRes.blob();
+          memoryPreview.textContent = await memBlob.text();
+        }
+      } catch (e) { /* 무시 */ }
+    } catch (e) {
+      rerunResult.innerHTML = `<span class="status-badge err">오류</span> ${escapeHtml(e.message)}`;
+    }
+  });
+
+  function showProgress(msg, isError) {
+    progressEl.classList.remove("hidden");
+    progressEl.textContent = msg;
+    progressEl.style.borderColor = isError ? "#fecaca" : "#bfdbfe";
+    progressEl.style.background = isError ? "#fef2f2" : "#eff6ff";
+    progressEl.style.color = isError ? "#991b1b" : "#1e40af";
+    if (!isError) {
+      uploadBtn.disabled = true;
+    }
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+})();
+</script>
+</body>
+</html>
