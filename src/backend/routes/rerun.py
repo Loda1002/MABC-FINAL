@@ -28,10 +28,15 @@ async def rerun(body: RerunRequest):
     memory = json.loads(memory_path.read_text(encoding="utf-8"))
     prev_results = memory.get("results", [])
 
-    # 기억 파일에 있는 항목과 현재 요청 항목의 교집합을 건너뛸 대상으로 계산
-    # 간단히: memory_data.results에 있는 항목 수만큼 이미 확인된 것으로 가정
-    remaining = len(body.memory_data.get("results", []))
-    skipped = min(remaining, len(prev_results)) if prev_results else 0
+    # item 기준으로 교집합을 계산해 이미 확인된 항목 건너뜀
+    body_items = {
+        r.get("item")
+        for r in body.memory_data.get("results", [])
+        if r.get("item")
+    }
+    prev_items = {r.get("item") for r in prev_results if r.get("item")}
+    skipped = len(body_items & prev_items)
+    remaining = len(body_items) - skipped
 
     # 기억 파일 갱신: 재검증 완료 상태 기록
     memory["reverified_at"] = __import__("datetime").datetime.now().isoformat()
@@ -39,6 +44,6 @@ async def rerun(body: RerunRequest):
 
     return RerunResponse(
         status="ok",
-        remaining_checks=remaining - skipped,
+        remaining_checks=remaining,
         skipped_checks=skipped,
     )
