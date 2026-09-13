@@ -30,8 +30,9 @@ import os as _os
 _FRONTEND_DIR = _os.path.abspath(
     _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))), "frontend")
 )
-if _os.path.isdir(_FRONTEND_DIR):
-    app.mount("/assets", StaticFiles(directory=_os.path.join(_FRONTEND_DIR, "assets")), name="assets")
+_assets_dir = _os.path.join(_FRONTEND_DIR, "assets")
+if _os.path.isdir(_FRONTEND_DIR) and _os.path.isdir(_assets_dir):
+    app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
 
 
 @app.get("/")
