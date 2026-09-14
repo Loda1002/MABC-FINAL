@@ -147,8 +147,8 @@
   }
   input[type="file"] { padding: 9px 11px; }
   textarea {
-    min-height: 220px;
-    resize: vertical;
+    min-height: 160px;
+    resize: none;
     line-height: 1.62;
     background: #fffafc;
     border-color: #e2d9ee;
@@ -241,14 +241,16 @@
   </div>
   <h1>원본 vs 초안 수치 대조 검수</h1>
   <p class="subtitle">
-    원본과 AI 초안의 인용 수치를 항목별로 대조해 5개 판정 라벨로 보여주고, 고쳐진 파일과 기억 파일을 내려받을 수 있습니다.
+    AI가 요약하거나 재작성한 자료와 원본 문서를 업로드하면, 문서 검수 도구가 원본과 비교해 잘못된 수치와 내용을 찾아드립니다.
+    원본에서 확인한 근거, 오류 내용, 수정 제안까지 한눈에 볼 수 있습니다.
+    AI가 요약한 자료가 맞는지 확신하기 어렵다면, 원본과 함께 다시 확인하세요.
   </p>
 
   <div id="progress" class="progress hidden" style="transition: opacity 0.25s;"></div>
 
   <div class="card">
     <h2>1. 원본과 초안 업로드</h2>
-    <p class="desc">왼쪽엔 원본 수치/표가 있는 자료, 오른쪽엔 검수할 초안을 올려주세요.</p>
+    <p class="desc">왼쪽엔 검수 기준이 되는 원본 자료(수치, 표, 문서), 오른쪽엔 그 원본을 바탕으로 작성된 초안을 올려주세요. AI가 넣었거나 바꾼 수치·주장이 원본을 제대로 반영했는지 확인할 때 사용합니다.</p>
     <div class="row">
       <div class="field">
         <label for="originalFile">원본 자료 <span class="hint">xlsx · 텍스트 표 · md · json</span></label>
@@ -300,6 +302,7 @@
         <span id="elapsed" style="font-size: 0.8rem; color: var(--muted); margin-left:auto;"></span>
       </div>
       <h2>2. 검수 결과</h2>
+      <p class="desc">항목별로 원본 값과 초안에 들어간 값을 비교해 보여줍니다. 근거와 수정 제안도 함께 표시하므로, 표시된 항목만 확인하면 됩니다.</p>
       <table class="results-table" id="resultsTable">
         <thead>
           <tr>
@@ -333,19 +336,20 @@
 
     <div class="card">
       <h2>4. 다운로드</h2>
+      <p class="desc">수정 제안이 반영된 고쳐진 파일과, 이번에 확인한 내용을 저장한 기억 파일을 각각 내려받을 수 있습니다. 기억 파일에는 원본 값을 확인한 항목, 판정 결과, 근거가 들어 있어 나중에 다시 올릴 수 있습니다.</p>
       <div class="download-row">
         <button id="downloadFixedBtn" type="button" disabled>고쳐진 파일 다운로드</button>
-        <button id="downloadMemoryBtn" type="button" disabled>기억 파일(memory.json) 다운로드</button>
+        <button id="downloadMemoryBtn" type="button" disabled>기억 파일(memory.json) 다운로드 — 확인된 내용 저장</button>
       </div>
       <div id="downloadInfo" style="margin-top: 8px; font-size: 0.8rem; color: var(--muted);"></div>
       <div class="notice">
-        LLM을 활용한 검수 도구이므로 결과에 오류가 있을 수 있습니다. 중요 문서 검수는 반드시 사람이 최종 확인해 주세요.
+        이 도구는 검수하는 사람의 확인 범위를 줄여 주는 보조 도구입니다. 결과에 오류가 있을 수 있으니, 중요 문서는 반드시 사람이 최종 확인해 주세요.
       </div>
     </div>
 
     <div class="card rerun-section">
       <h2>5. 기억 파일 재업로드 — 재검증 대상 축소</h2>
-      <p class="desc">이전 검수 결과(memory.json)를 다시 올리면 이미 확인된 항목은 재검증에서 제외됩니다.</p>
+      <p class="desc">이전 검수 결과(memory.json)를 다시 올리면, 이미 확인한 항목은 재검증 대상에서 제외하고 바뀐 부분만 다시 확인합니다. 기억 파일에는 원본 값을 확인한 항목과 그 판정 결과가 저장되어 있어, 초안이 수정된 뒤 전 항목을 처음부터 다시 검수하지 않아도 됩니다.</p>
       <div class="row">
         <div class="field">
           <label for="memoryFile">기억 파일 업로드</label>
@@ -372,7 +376,7 @@
     <div class="links">
       <a class="link" href="/docs" target="_blank">OpenAPI 문서</a>
       <span class="sep">·</span>
-      <a class="link" href="/api/health" target="_blank">건강 체크</a>
+      <a class="link" href="/api/health" target="_blank">헬스 체크</a>
       <span class="sep">·</span>
       <span style="color:var(--muted); font-size:0.82rem;">MABC-FINAL · AI 요약 초안 대조 검수</span>
     </div>
@@ -466,6 +470,7 @@
         origEl.style.height = origEl.scrollHeight + "px";
         draftEl.style.height = "auto";
         draftEl.style.height = draftEl.scrollHeight + "px";
+        syncTextareaHeights();
       });
       $("#originalFile").value = "";
       $("#draftFile").value = "";
@@ -544,7 +549,7 @@
   });
 
   async function runCheck(origId, draftId) {
-    showProgress("에이전트가 원본과 초안을 대조 중입니다... (Solar Pro 4 + cited figure check 스킬 호출)", false, 0);
+    showProgress("원본과 초안을 대조 중입니다...", false, 0);
     try {
       const res = await fetch("/api/check", {
         method: "POST",
@@ -743,7 +748,16 @@
 
   function escapeHtml(s) {
     if (s == null) return "";
-    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+  function syncTextareaHeights() {
+    const orig = $("#originalText");
+    const draft = $("#draftText");
+    if (!orig || !draft) return;
+    const maxH = Math.max(orig.scrollHeight, draft.scrollHeight);
+    orig.style.height = maxH + "px";
+    draft.style.height = maxH + "px";
   }
 
   ["originalText", "draftText"].forEach(id => {
@@ -751,10 +765,12 @@
     ta.addEventListener("input", () => {
       ta.style.height = "auto";
       ta.style.height = ta.scrollHeight + "px";
+      syncTextareaHeights();
     });
     setTimeout(() => {
       ta.style.height = "auto";
       ta.style.height = ta.scrollHeight + "px";
+      syncTextareaHeights();
     }, 0);
   });
 })();
