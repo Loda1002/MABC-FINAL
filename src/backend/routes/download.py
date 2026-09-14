@@ -1,5 +1,4 @@
 # GET /api/download/{type} — 고쳐진 파일 / 기억 파일 다운로드.
-
 import json
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
@@ -65,10 +64,12 @@ def generate_outputs(results: list[dict], original_text: str, draft_text: str):
             key = key.strip()
             val = val.strip()
             fixed_val = val
+            # "불일치" 항목만 원본 값으로 교체. source_value가 실제 값일 때만 사용.
             for r in results:
-                if r.get("item") == key and r.get("judgment") in ("불일치", "값은 있으나 항목 대응이 다름", "원본에 없음"):
-                    if r.get("source_value") and r["source_value"] != "None":
-                        fixed_val = r["source_value"]
+                if r.get("item") == key and r.get("judgment") == "불일치":
+                    sv = r.get("source_value")
+                    if sv and isinstance(sv, str) and sv.strip():
+                        fixed_val = sv.strip()
                     break
             if fixed_val != val:
                 fixed_lines.append(f"{key}: {fixed_val}")

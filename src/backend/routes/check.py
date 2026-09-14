@@ -112,7 +112,16 @@ async def run_check(body: CheckRequest):
             val = val.strip()
             if key in source_values:
                 source_val = source_values[key]
-                if _normalize_number(val) == _normalize_number(source_val):
+                if not source_val and not val:
+                    judgment = "확인 불가"
+                    suggestion = f"원본과 초안 모두 '{key}' 항목의 값이 비어 있어 비교할 수 없습니다."
+                elif not source_val:
+                    judgment = "확인 불가"
+                    suggestion = f"원본에 '{key}' 항목의 값이 비어 있어 확인할 수 없습니다."
+                elif not val:
+                    judgment = "확인 불가"
+                    suggestion = f"초안에 '{key}' 항목의 값이 비어 있어 확인할 수 없습니다."
+                elif _normalize_number(val) == _normalize_number(source_val):
                     judgment = "일치"
                     suggestion = None
                 elif val == source_val:
@@ -122,19 +131,24 @@ async def run_check(body: CheckRequest):
                     judgment = "불일치"
                     suggestion = f"원본은 {source_val}입니다. {val} → {source_val}로 수정."
             else:
-                # 원본에 없는 키: 값 자체가 원본의 어떤 값과 일치하면 "값은 있으나 항목 대응이 다름"
-                matched = None
-                for sk, sv in source_values.items():
-                    if _normalize_number(val) == _normalize_number(sv):
-                        matched = (sk, sv)
-                        break
-                if matched:
-                    mj, mv = matched
-                    judgment = "값은 있으나 항목 대응이 다름"
-                    suggestion = f"원본의 '{mj}'({mv})와 값은 같지만 항목 대응이 다릅니다."
+                # 원본에 없는 키: 초안 값이 비어 있으면 '확인 불가'로 처리
+                if not val:
+                    judgment = "확인 불가"
+                    suggestion = f"초안에 '{key}' 항목의 값이 비어 있어 확인할 수 없습니다."
                 else:
-                    judgment = "원본에 없음"
-                    suggestion = f"원본 자료에 '{key}' 항목이 없습니다."
+                    # 원본에 없는 키: 값 자체가 원본의 어떤 값과 일치하면 "값은 있으나 항목 대응이 다름"
+                    matched = None
+                    for sk, sv in source_values.items():
+                        if _normalize_number(val) == _normalize_number(sv):
+                            matched = (sk, sv)
+                            break
+                    if matched:
+                        mj, mv = matched
+                        judgment = "값은 있으나 항목 대응이 다름"
+                        suggestion = f"원본의 '{mj}'({mv})와 값은 같지만 항목 대응이 다릅니다."
+                    else:
+                        judgment = "원본에 없음"
+                        suggestion = f"원본 자료에 '{key}' 항목이 없습니다."
             results.append(CheckResultItem(
                 item=key,
                 cited_value=val,
@@ -188,6 +202,9 @@ async def run_check(body: CheckRequest):
 def _normalize_number(s: str) -> str:
     """숫자 정규화: 단위 변환 처리 (예: 1.2억 → 120000000, 12000만원 → 120000000)."""
     s = s.replace(",", "").strip()
+    m = _re.match(r"^([\d.]+)\s*억\s*원\s*$", s)
+    if m:
+        return str(int(float(m.group(1)) * 100_000_000))
     m = _re.match(r"^([\d.]+)\s*억\s*$", s)
     if m:
         return str(int(float(m.group(1)) * 100_000_000))
@@ -251,6 +268,9 @@ def _check_calculated_claims(original: str, draft: str) -> list[CheckResultItem]
 def _parse_number(s: str) -> float | None:
     """문자열에서 숫자 하나 추출. 단위 변환도 시도."""
     s = s.replace(",", "").strip()
+    m = _re.match(r"^([\d.]+)\s*억\s*원\s*$", s)
+    if m:
+        return float(m.group(1)) * 100_000_000
     m = _re.match(r"^([\d.]+)\s*억\s*$", s)
     if m:
         return float(m.group(1)) * 100_000_000
