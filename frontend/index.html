@@ -241,8 +241,7 @@
   </div>
   <h1>원본 vs 초안 수치 대조 검수</h1>
   <p class="subtitle">
-    원본 자료와 AI가 작성한 초안을 올리면 각 인용 수치를 원본과 대조해
-    <nobr>5개 판정 라벨</nobr>로 결과를 보여줍니다. 고쳐진 파일과 기억 파일도 내려받을 수 있습니다.
+    원본과 AI 초안의 인용 수치를 항목별로 대조해 5개 판정 라벨로 보여주고, 고쳐진 파일과 기억 파일을 내려받을 수 있습니다.
   </p>
 
   <div id="progress" class="progress hidden" style="transition: opacity 0.25s;"></div>
@@ -305,8 +304,8 @@
         <thead>
           <tr>
             <th style="width: 20%;">항목</th>
-            <th style="width: 14%;">인용 값</th>
             <th style="width: 14%;">원본 값</th>
+            <th style="width: 14%;">인용 값</th>
             <th style="width: 13%;">판정</th>
             <th style="width: 19%;">근거</th>
             <th style="width: 12%;">수정 제안</th>
@@ -346,7 +345,7 @@
 
     <div class="card rerun-section">
       <h2>5. 기억 파일 재업로드 — 재검증 대상 축소</h2>
-      <p class="desc">이전 버전 검수 결과가 담긴 memory.json을 다시 올리면, 이미 확인된 항목은 재검증 대상에서 제외됩니다.</p>
+      <p class="desc">이전 검수 결과(memory.json)를 다시 올리면 이미 확인된 항목은 재검증에서 제외됩니다.</p>
       <div class="row">
         <div class="field">
           <label for="memoryFile">기억 파일 업로드</label>
@@ -598,8 +597,8 @@
       const judgmentClass = judgmentClassFor(r.judgment);
       tr.innerHTML = `
         <td>${escapeHtml(r.item)}</td>
-        <td>${escapeHtml(r.cited_value)}</td>
         <td>${escapeHtml(r.source_value || "—")}</td>
+        <td>${escapeHtml(r.cited_value)}</td>
         <td><span class="judgment ${judgmentClass}">${escapeHtml(r.judgment)}</span></td>
         <td>${escapeHtml(r.basis || "—")}</td>
         <td>${r.correction_suggestion ? escapeHtml(r.correction_suggestion) : "—"}</td>

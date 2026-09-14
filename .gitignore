@@ -48,6 +48,7 @@ src/uploads/
 
 # 헤르메스 임시 작업 디렉토리
 .hermes-tmp/
+frontend/.hermes-tmp*
 
 # 스킬 매니페스트 (프로덕션 코드에 포함 안 함)
 skill-manifest.json

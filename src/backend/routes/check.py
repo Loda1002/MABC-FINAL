@@ -58,8 +58,8 @@ def _xlsx_to_text(path: Path) -> str:
                     cells.append(str(int(c)))
                 else:
                     cells.append(str(c))
-            line = " | ".join(cells)
-            if line.strip(" |"):
+            line = ": ".join(cells)
+            if line.strip():
                 lines.append(line)
         lines.append("")  # 시트 간 구분
     return "\n".join(lines)
@@ -214,6 +214,9 @@ def _normalize_number(s: str) -> str:
     m = _re.match(r"^([\d.]+)\s*천\s*원\s*$", s)
     if m:
         return str(int(float(m.group(1)) * 1_000))
+    m = _re.match(r"^([\d.]+)\s*만\s*$", s)
+    if m:
+        return str(int(float(m.group(1)) * 10_000))
     if "%" in s:
         return s.replace("%", "").strip()
     m = _re.match(r"^([\d.]+)$", s)
@@ -247,9 +250,9 @@ def _check_calculated_claims(original: str, draft: str) -> list[CheckResultItem]
                         results.append(CheckResultItem(
                             item="증감률",
                             cited_value=f"{cited_growth}% 증가",
-                            source_value=f"{real_growth:.1f}% 증가 (계산: ({later} - {base}) / {base} * 100)",
+                            source_value=f"{real_growth:.1f}% 증가",
                             judgment="불일치",
-                            basis="원본 표 값 기반 코드 계산",
+                            basis="원본 표 값 기반 코드 계산 (첫 두 숫자 사용)",
                             correction_suggestion=f"실제 증감률은 {real_growth:.1f}%입니다. {cited_growth}% → {real_growth:.1f}%로 수정.",
                             calculation=f"({later} - {base}) / {base} * 100",
                         ))
@@ -275,6 +278,9 @@ def _parse_number(s: str) -> float | None:
     if m:
         return float(m.group(1)) * 100_000_000
     m = _re.match(r"^([\d.]+)\s*만\s*원\s*$", s)
+    if m:
+        return float(m.group(1)) * 10_000
+    m = _re.match(r"^([\d.]+)\s*만\s*$", s)
     if m:
         return float(m.group(1)) * 10_000
     m = _re.match(r"^([\d.]+)$", s)
