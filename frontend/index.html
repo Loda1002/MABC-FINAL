@@ -148,9 +148,8 @@
   input[type="file"] { padding: 9px 11px; }
   textarea {
     min-height: 220px;
-    resize: none;
+    resize: vertical;
     line-height: 1.62;
-    overflow: hidden;
     background: #fffafc;
     border-color: #e2d9ee;
   }
@@ -281,11 +280,11 @@
     <h2>1b. 텍스트 직접 입력</h2>
     <p class="desc">파일 대신 원본과 초안을 텍스트로 붙여넣고 검수할 수도 있습니다.</p>
     <div class="row">
-      <div class="field full">
+      <div class="field">
         <label for="originalText">원본 텍스트</label>
         <textarea id="originalText" placeholder="원본 자료를 텍스트로 붙여넣기&#10;예:&#10;품목: 가상품목 A&#10;2025년 12월 생산량: 12000만원&#10;2026년 1월 생산량: 15000만원"></textarea>
       </div>
-      <div class="field full">
+      <div class="field">
         <label for="draftText">초안 텍스트</label>
         <textarea id="draftText" placeholder="검토 대상 초안을 텍스트로 붙여넣기&#10;예:&#10;가상품목 A의 1월 생산량은 1.5억원이고, 12월 대비 35% 증가했습니다."></textarea>
       </div>
@@ -458,8 +457,14 @@
         throw new Error(`예시 데이터를 가져오지 못했습니다 (HTTP ${res.status}). ${errBody.slice(0,120)}`);
       }
       const data = await res.json();
-      $("#originalText").value = data.original_text;
-      $("#draftText").value = data.draft_text;
+      const origEl = document.getElementById("originalText");
+      const draftEl = document.getElementById("draftText");
+      origEl.value = data.original_text;
+      origEl.style.height = "auto";
+      origEl.style.height = origEl.scrollHeight + "px";
+      draftEl.value = data.draft_text;
+      draftEl.style.height = "auto";
+      draftEl.style.height = draftEl.scrollHeight + "px";
       $("#originalFile").value = "";
       $("#draftFile").value = "";
       setFileInfo("originalFileArea", "originalFileInfo", null, "원본 텍스트를 입력했습니다");
