@@ -383,7 +383,7 @@
 
 <script>
 (function() {
-  const $ = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(String(id).replace(/^#/, ""));
   const uploadBtn = $("#uploadBtn");
   const exampleBtn = $("#exampleBtn");
   const checkFromTextBtn = $("#checkFromTextBtn");
@@ -459,12 +459,15 @@
       const data = await res.json();
       const origEl = document.getElementById("originalText");
       const draftEl = document.getElementById("draftText");
+      const alreadyFilled = origEl.value.trim() && draftEl.value.trim();
       origEl.value = data.original_text;
-      origEl.style.height = "auto";
-      origEl.style.height = origEl.scrollHeight + "px";
       draftEl.value = data.draft_text;
-      draftEl.style.height = "auto";
-      draftEl.style.height = draftEl.scrollHeight + "px";
+      requestAnimationFrame(() => {
+        origEl.style.height = "auto";
+        origEl.style.height = origEl.scrollHeight + "px";
+        draftEl.style.height = "auto";
+        draftEl.style.height = draftEl.scrollHeight + "px";
+      });
       $("#originalFile").value = "";
       $("#draftFile").value = "";
       setFileInfo("originalFileArea", "originalFileInfo", null, "원본 텍스트를 입력했습니다");
@@ -472,6 +475,7 @@
       uploadBtn.disabled = true;
       clearProgress();
       window.scrollTo({ top: 0, behavior: "smooth" });
+      if (!alreadyFilled) setTimeout(() => $("#checkFromTextBtn").click(), 120);
     } catch (e) {
       showProgress(e.message, true, 0);
     }
