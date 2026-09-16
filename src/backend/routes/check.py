@@ -199,12 +199,16 @@ async def run_check(body: CheckRequest):
         }
         for r in results
     ]
-    fixed_text = generate_outputs(results_dict, original_text, draft_text)
+    accepted_items = {r.item for r in results if r.verified}
+    fixed_text = generate_outputs(results_dict, original_text, draft_text, accepted_items)
     memory_data = {
         "version": "1.0",
         "generated_at": datetime.now().isoformat(),
         "results": results_dict,
         "fixed_text": fixed_text,
+        "accepted_items": sorted(accepted_items),
+        "original_text": original_text,
+        "draft_text": draft_text,
     }
 
     elapsed = time.time() - start

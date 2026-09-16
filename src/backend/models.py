@@ -49,6 +49,18 @@ class DownloadMeta(BaseModel):
     content_type: str
 
 
+class DownloadFixedRequest(BaseModel):
+    accepted_items: list[str] | None = None
+    results: list[dict] | None = None
+    memory_data: dict | None = None
+    original_text: str | None = None
+    draft_text: str | None = None
+
+
+class DownloadFixedResponse(BaseModel):
+    fixed_text: str
+
+
 # ── rerun ───────────────────────────────────────────────────────────────────
 
 class RerunRequest(BaseModel):
