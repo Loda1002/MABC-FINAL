@@ -318,6 +318,10 @@
         <tbody id="resultsBody"></tbody>
       </table>
       <div id="calcNote" style="margin-top: 10px; font-size: 0.8rem; color: var(--muted);"></div>
+      <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button id="applyBtn" type="button" disabled>적용하기</button>
+        <span id="applyInfo" style="font-size: 0.8rem; color: var(--muted);"></span>
+      </div>
     </div>
 
     <div class="card">
@@ -400,6 +404,8 @@
   const calcNote = $("#calcNote");
   const downloadFixedBtn = $("#downloadFixedBtn");
   const downloadMemoryBtn = $("#downloadMemoryBtn");
+  const applyBtn = $("#applyBtn");
+  const applyInfo = $("#applyInfo");
   const rerunBtn = $("#rerunBtn");
   const rerunResult = $("#rerunResult");
   const memoryPreview = $("#memoryPreview");
@@ -603,6 +609,7 @@
     currentResults.forEach((r, idx) => {
       const tr = document.createElement("tr");
       const judgmentClass = judgmentClassFor(r.judgment);
+      const showCheckbox = r.judgment !== "일치";
       tr.innerHTML = `
         <td>${escapeHtml(r.item)}</td>
         <td>${escapeHtml(r.source_value || "—")}</td>
@@ -610,7 +617,7 @@
         <td><span class="judgment ${judgmentClass}">${escapeHtml(r.judgment)}</span></td>
         <td>${escapeHtml(r.basis || "—")}</td>
         <td>${r.correction_suggestion ? escapeHtml(r.correction_suggestion) : "—"}</td>
-        <td style="text-align:center;"><input type="checkbox" ${r.verified ? "checked" : ""} data-idx="${idx}"></td>
+        <td style="text-align:center;">${showCheckbox ? `<input type="checkbox" ${r.verified ? "checked" : ""} data-idx="${idx}">` : "—"}</td>
       `;
       resultsBody.appendChild(tr);
     });
@@ -621,6 +628,7 @@
         currentResults[parseInt(e.target.dataset.idx, 10)].verified = e.target.checked;
       });
     });
+    updateApplyButton();
   }
 
   function judgmentClassFor(j) {
@@ -698,6 +706,14 @@
 
   function draftLine(key, val) {
     return val ? `${key}: ${val}` : key;
+  }
+
+  function updateApplyButton() {
+    const checked = currentResults.filter(r => r.verified).map(r => r.item);
+    applyBtn.disabled = checked.length === 0;
+    applyInfo.textContent = checked.length
+      ? `${checked.length}개 항목이 적용 예정으로 선택됐습니다.`
+      : "";
   }
 
   downloadFixedBtn.addEventListener("click", async () => {
