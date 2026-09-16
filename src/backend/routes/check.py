@@ -218,10 +218,16 @@ def _normalize_number(s: str) -> str:
     if m:
         return str(int(float(m.group(1)) * 10_000))
     if "%" in s:
-        return s.replace("%", "").strip()
+        s = s.replace("%", "").strip()
+        m = _re.match(r"^([\d.]+)$", s)
+        if m:
+            v = float(m.group(1))
+            return str(int(v) if v == int(v) else str(v))
+        return s
     m = _re.match(r"^([\d.]+)$", s)
     if m:
-        return str(float(m.group(1)))
+        v = float(m.group(1))
+        return str(int(v) if v == int(v) else str(v))
     return s
 
 
@@ -269,20 +275,20 @@ def _check_calculated_claims(original: str, draft: str) -> list[CheckResultItem]
 
 
 def _parse_number(s: str) -> float | None:
-    """문자열에서 숫자 하나 추출. 단위 변환도 시도."""
+    """ 문자열에서 숫자 하나 추출. 단위 변환도 시도. """
     s = s.replace(",", "").strip()
     m = _re.match(r"^([\d.]+)\s*억\s*원\s*$", s)
     if m:
-        return float(m.group(1)) * 100_000_000
+        return round(float(m.group(1)) * 100_000_000)
     m = _re.match(r"^([\d.]+)\s*억\s*$", s)
     if m:
-        return float(m.group(1)) * 100_000_000
+        return round(float(m.group(1)) * 100_000_000)
     m = _re.match(r"^([\d.]+)\s*만\s*원\s*$", s)
     if m:
-        return float(m.group(1)) * 10_000
+        return round(float(m.group(1)) * 10_000)
     m = _re.match(r"^([\d.]+)\s*만\s*$", s)
     if m:
-        return float(m.group(1)) * 10_000
+        return round(float(m.group(1)) * 10_000)
     m = _re.match(r"^([\d.]+)$", s)
     if m:
         return float(m.group(1))
