@@ -101,7 +101,12 @@ def generate_outputs(results: list[dict], original_text: str, draft_text: str, a
                         break
                     sv = r.get("source_value")
                     if sv and isinstance(sv, str) and sv.strip():
-                        fixed_val = sv.strip()
+                        raw = sv.strip()
+                        # source_value가 "key: value" 형태로 들어와 있을 수 있으므로,
+                        # 콜론이 있으면 값 부분만 취한다 (중복 키 출력 방지).
+                        if ":" in raw:
+                            _, _, raw = raw.partition(":")
+                        fixed_val = raw.strip()
                     break
             if fixed_val != val:
                 fixed_lines.append(f"{key}: {fixed_val}")
