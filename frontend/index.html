@@ -766,6 +766,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           accepted_items: checkedItems,
+          results: currentResults,
           original_text: currentOriginalText || "",
           draft_text: currentDraftText || "",
         }),
