@@ -37,7 +37,6 @@ EXAMPLE_DRAFT = """\
 2026년 2월 생산량: 1.8억
 2026년 3월 생산량: 2.5억
 2026년 4월 생산량: 2.8억
-증감율: 28% 증가
 총 판매액: 10.5억
 A지역 매출: 1억원
 B지역 매출: 1.2억
@@ -68,7 +67,6 @@ EXAMPLE_MEMORY = {
         {"item": "2026년 2월 생산량", "judgment": "일치", "verified": True, "source_value": "18000만원", "cited_value": "1.8억"},
         {"item": "2026년 3월 생산량", "judgment": "불일치", "verified": False, "source_value": "22000만원", "cited_value": "2.5억"},
         {"item": "2026년 4월 생산량", "judgment": "일치", "verified": True, "source_value": "28000만원", "cited_value": "2.8억"},
-        {"item": "증감율", "judgment": "불일치", "verified": False, "source_value": "약 83.3% 증가", "cited_value": "28% 증가"},
         {"item": "총 판매액", "judgment": "일치", "verified": True, "source_value": "105000만원", "cited_value": "10.5억"},
         {"item": "A지역 매출", "judgment": "일치", "verified": True, "source_value": "10000만원", "cited_value": "1억원"},
         {"item": "B지역 매출", "judgment": "일치", "verified": True, "source_value": "12000만원", "cited_value": "1.2억"},
@@ -106,7 +104,6 @@ async def get_example():
             {"item": "2026년 2월 생산량", "judgment": "일치", "note": "1.8억 ↔ 18000만원 단위 변환 일치"},
             {"item": "2026년 3월 생산량", "judgment": "불일치", "note": "원본 22000만원(2.2억) vs 초안 2.5억 → 값 다름"},
             {"item": "2026년 4월 생산량", "judgment": "일치", "note": "2.8억 ↔ 28000만원 단위 변환 일치"},
-            {"item": "증감율", "judgment": "불일치", "note": "실제 증감률 계산값과 초안 주장 비교 → 코드 계산으로 검출"},
             {"item": "총 판매액", "judgment": "일치", "note": "10.5억 ↔ 105000만원 단위 변환 일치"},
             {"item": "A지역 매출", "judgment": "일치", "note": "1억원 ↔ 10000만원 단위 변환 일치"},
             {"item": "B지역 매출", "judgment": "일치", "note": "1.2억 ↔ 12000만원 단위 변환 일치"},

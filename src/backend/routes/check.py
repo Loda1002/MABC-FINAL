@@ -158,21 +158,12 @@ async def run_check(body: CheckRequest):
             judgment_reason=item_data.get("불확실성이유") or None,
         ))
 
-    # ── 계산 인용 검증 (코드 연산) ────────────────────────────────────────────
-    # 금지 규칙 4번: 수치 비교는 모델이 아닌 코드가 직접 수행.
-    # 스킬이 계산 인용을 감지한 경우, 코드가 실제 계산으로 교차 검증.
-    calc_results = _check_calculated_claims(original_text, draft_text, solar_items)
-    results.extend(calc_results)
-
     # ── Solar이 아예 응답 못 한 경우 (API 키 없음/호출 실패) 대비 ───────────
     # 호출부 존재 자체는 유지되나, Solar 결과가 없으면 로컬 키-값 대조로 보완.
     if not results:
         local_results = _build_local_results(original_text, draft_text)
         if local_results:
-            # 로컬 결과의 계산 인용 검증도 함께 수행
-            local_calc_results = _check_calculated_claims(original_text, draft_text, solar_items)
             results.extend(local_results)
-            results.extend(local_calc_results)
         else:
             # 로컬 결과도 없으면 사용자에게 안내.
             results.append(CheckResultItem(
@@ -490,76 +481,6 @@ def _normalize_calc_result(cited: str, computed: float) -> tuple[str, str]:
     cited_num = _parse_number(cited.replace("%", "").replace("≈", "").strip())
     computed_rounded = round(computed, 1)
     return f"{computed_rounded}%", str(pct)
-
-
-# ── 계산 인용 코드 검증 (금지 규칙 4번: 수치 비교는 코드가 수행) ──────────────
-
-def _check_calculated_claims(
-    original: str,
-    draft: str,
-    solar_items: list[dict] | None = None,
-) -> list[CheckResultItem]:
-    """계산 인용(증감률, 합계 등)을 코드 계산으로 검증.
-
-    Solar 스킬 출력은 참고만 하고, 실제 수치 비교는 코드가 직접 계산해서 수행한다.
-    금지 규칙 4번 준수: 수치 비교를 모델에게 맡기지 않는다.
-    """
-    results: list[CheckResultItem] = []
-    lines = original.splitlines()
-    numbers: list[float] = []
-    for line in lines:
-        if ":" in line:
-            _, _, val = line.partition(":")
-            num = _parse_number(val.strip())
-            if num is not None:
-                numbers.append(num)
-
-    if len(numbers) >= 2:
-        base = numbers[0]
-        later = numbers[1]
-        if base != 0:
-            real_growth = (later - base) / base * 100
-            # 초안 텍스트에서도 % 증가 패턴 검색
-            for dl in draft.splitlines():
-                m = _re.search(r"([\d.]+)\s*%\s*증가", dl)
-                if m:
-                    cited_growth = float(m.group(1))
-                    if abs(cited_growth - real_growth) > 0.5:
-                        results.append(CheckResultItem(
-                            item="증감률",
-                            cited_value=f"{cited_growth}% 증가",
-                            source_value=f"{real_growth:.1f}% 증가",
-                            judgment="불일치",
-                            basis="원본 표 값 기반 코드 계산 (첫 두 숫자 사용)",
-                            correction_suggestion=(
-                                f"실제 증감률은 {real_growth:.1f}%입니다. "
-                                f"{cited_growth}% → {real_growth:.1f}%로 수정."
-                            ),
-                            calculation=f"({later} - {base}) / {base} * 100",
-                        ))
-                    else:
-                        results.append(CheckResultItem(
-                            item="증감률",
-                            cited_value=f"{cited_growth}% 증가",
-                            source_value=f"{real_growth:.1f}% 증가",
-                            judgment="일치",
-                            basis="원본 표 값 기반 코드 계산",
-                            calculation=f"({later} - {base}) / {base} * 100",
-                        ))
-    return results
-
-
-def _find_solar_growth_items(solar_items: list[dict]) -> list[dict]:
-    """Solar 응답 중 '증감률' 관련 계산 인용 아이템 필터링."""
-    out: list[dict] = []
-    for it in solar_items:
-        인용 = it.get("인용", "")
-        원본대응 = it.get("원본대응", "")
-        if "증가" in 인용 or "감소" in 인용 or "%" in 인용:
-            out.append(it)
-        elif "%" in 원본대응 or "계산" in 원본대응:
-            out.append(it)
-    return out
 
 
 def _parse_kv_map(text: str) -> dict[str, str]:
