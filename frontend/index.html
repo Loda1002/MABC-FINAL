@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MABC-FINAL — AI 요약 초안 vs 원본 대조 검수</title>
+<title>문서 확인 도우미 — AI 자료와 원본 비교</title>
 <style>
   :root {
     --bg: #fbf7ff;
@@ -234,14 +234,14 @@
 </head>
 <body>
 <div class="container">
-  <div class="pre-title">검수 도구 · MABC-FINAL</div>
+  <div class="pre-title">문서 확인 도우미</div>
   <div class="tags" style="margin-bottom: 8px;">
-    <span class="tag">Solar Pro 4</span>
-    <span class="tag">cited figure check</span>
+    <span class="tag">AI 자료 검토</span>
+    <span class="tag">원본과 비교</span>
   </div>
-  <h1>원본 vs 초안 수치 대조 검수</h1>
+  <h1>AI가 만든 자료와 원본을 비교해 확인하기</h1>
   <p class="subtitle">
-    AI가 요약하거나 재작성한 자료와 원본 문서를 업로드하면, 문서 검수 도구가 원본과 비교해 잘못된 수치와 내용을 찾아드립니다.
+    AI가 요약하거나 재작성한 자료와 원본 문서를 올리면, 문서 확인 도구가 원본과 비교해 잘못된 수치와 내용을 찾아드립니다.
     원본에서 확인한 근거, 오류 내용, 수정 제안까지 한눈에 볼 수 있습니다.
     AI가 요약한 자료가 맞는지 확신하기 어렵다면, 원본과 함께 다시 확인하세요.
   </p>
@@ -249,49 +249,49 @@
   <div id="progress" class="progress hidden" style="transition: opacity 0.25s;"></div>
 
   <div class="card">
-    <h2>1. 원본과 초안 업로드</h2>
-    <p class="desc">왼쪽엔 검수 기준이 되는 원본 자료(수치, 표, 문서), 오른쪽엔 그 원본을 바탕으로 작성된 초안을 올려주세요. AI가 넣었거나 바꾼 수치·주장이 원본을 제대로 반영했는지 확인할 때 사용합니다.</p>
+    <h2>1. 원본 자료와 AI 자료 올리기</h2>
+    <p class="desc">왼쪽에는 확인할 기준이 되는 원본 자료(수치, 표, 문서)를, 오른쪽에는 그 원본을 바탕으로 AI가 만든 자료를 올려 주세요. AI가 넣었거나 바꾼 숫자나 주장이 원본을 제대로 반영했는지 확인할 때 사용합니다.</p>
     <div class="row">
       <div class="field">
         <label for="originalFile">원본 자료 <span class="hint">xlsx · 텍스트 표 · md · json</span></label>
         <div class="file-area" id="originalFileArea">
           <input type="file" id="originalFile" accept=".xlsx,.xls,.txt,.md,.json" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
           <div class="file-info" id="originalFileInfo">
-            <span style="color:var(--muted);">원본 파일을 선택하거나 아래 텍스트로 직접 입력하세요</span>
+            <span style="color:var(--muted);">원본 파일을 고르거나 아래 칸에 직접 입력할 수 있습니다</span>
           </div>
         </div>
       </div>
       <div class="field">
-        <label for="draftFile">검토 대상 초안 <span class="hint">xlsx · 텍스트 표 · md · json</span></label>
+        <label for="draftFile">확인할 AI 자료 <span class="hint">xlsx · 텍스트 표 · md · json</span></label>
         <div class="file-area" id="draftFileArea">
           <input type="file" id="draftFile" accept=".xlsx,.xls,.txt,.md,.json" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
           <div class="file-info" id="draftFileInfo">
-            <span style="color:var(--muted);">초안 파일을 선택하거나 아래 텍스트로 직접 입력하세요</span>
+            <span style="color:var(--muted);">AI 자료를 고르거나 아래 칸에 직접 입력할 수 있습니다</span>
           </div>
         </div>
       </div>
     </div>
     <div class="btn-row" style="margin-top:14px;">
-      <button id="exampleBtn" class="secondary" type="button">예시 데이터로 채우기</button>
-      <button id="uploadBtn" disabled type="button">업로드 &amp; 검수 시작</button>
+      <button id="exampleBtn" class="secondary" type="button">예시 자료로 채워보기</button>
+      <button id="uploadBtn" disabled type="button">올리고 확인하기 시작</button>
     </div>
   </div>
 
   <div class="card" id="textInputSection">
-    <h2>1b. 텍스트 직접 입력</h2>
-    <p class="desc">파일 대신 원본과 초안을 텍스트로 붙여넣고 검수할 수도 있습니다.</p>
+    <h2>2. 파일 대신 텍스트로 입력하기</h2>
+    <p class="desc">파일 대신 원본 자료와 AI 자료를 텍스트로 붙여넣고 확인할 수도 있습니다.</p>
     <div class="row">
       <div class="field">
-        <label for="originalText">원본 텍스트</label>
-        <textarea id="originalText" placeholder="원본 자료를 텍스트로 붙여넣기&#10;예:&#10;품목: 가상품목 A&#10;2025년 12월 생산량: 12000만원&#10;2026년 1월 생산량: 15000만원"></textarea>
+        <label for="originalText">원본 자료 텍스트</label>
+        <textarea id="originalText" placeholder="원본 자료를 텍스트로 붙여넣으세요&#10;예:&#10;품목: 가상품목 A&#10;2025년 12월 생산량: 12000만원&#10;2026년 1월 생산량: 15000만원"></textarea>
       </div>
       <div class="field">
-        <label for="draftText">초안 텍스트</label>
-        <textarea id="draftText" placeholder="검토 대상 초안을 텍스트로 붙여넣기&#10;예:&#10;가상품목 A의 1월 생산량은 1.5억원이고, 12월 대비 35% 증가했습니다."></textarea>
+        <label for="draftText">AI 자료 텍스트</label>
+        <textarea id="draftText" placeholder="AI 자료를 텍스트로 붙여넣으세요&#10;예:&#10;가상품목 A의 1월 생산량은 1.5억원이고, 12월 대비 35% 증가했습니다."></textarea>
       </div>
     </div>
     <div class="btn-row" style="margin-top:8px;">
-      <button id="checkFromTextBtn" type="button">텍스트로 검수 시작</button>
+      <button id="checkFromTextBtn" type="button">텍스트로 확인하기 시작</button>
     </div>
   </div>
 
@@ -301,18 +301,18 @@
         <span id="resultsStatus" class="status-badge"></span>
         <span id="elapsed" style="font-size: 0.8rem; color: var(--muted); margin-left:auto;"></span>
       </div>
-      <h2>2. 검수 결과</h2>
-      <p class="desc">항목별로 원본 값과 초안에 들어간 값을 비교해 보여줍니다. 근거와 수정 제안도 함께 표시하므로, 표시된 항목만 확인하면 됩니다.</p>
+      <h2>3. 비교 결과</h2>
+      <p class="desc">항목별로 원본 값과 AI 자료에 들어간 값을 비교해 보여줍니다. 확인한 근거와 고치는 방법 제안도 함께 표시하므로, 표시된 항목만 보면 됩니다.</p>
       <table class="results-table" id="resultsTable">
         <thead>
           <tr>
             <th style="width: 20%;">항목</th>
             <th style="width: 14%;">원본 값</th>
-            <th style="width: 14%;">인용 값</th>
-            <th style="width: 13%;">판정</th>
-            <th style="width: 19%;">근거</th>
-            <th style="width: 12%;">수정 제안</th>
-            <th style="width: 8%;">확인</th>
+            <th style="width: 14%;">AI 자료 값</th>
+            <th style="width: 13%;">비교 결과</th>
+            <th style="width: 19%;">확인 근거</th>
+            <th style="width: 12%;">고치는 방법 제안</th>
+            <th style="width: 8%;">내가 확인함</th>
           </tr>
         </thead>
         <tbody id="resultsBody"></tbody>
@@ -321,52 +321,52 @@
     </div>
 
     <div class="card">
-      <h2>3. Before / After</h2>
+      <h2>4. 바꾸기 전/후 비교</h2>
       <div class="before-after">
         <div>
-          <div class="ba-label"><span class="dot red"></span> Before — 초안 (문제 부분 <span style="color:var(--red);">빨강</span>)</div>
+          <div class="ba-label"><span class="dot red"></span> AI 자료 (수정 전, 잘못된 부분은 <span style="color:var(--red);">빨강</span>)</div>
           <pre id="beforeView"></pre>
         </div>
         <div>
-          <div class="ba-label"><span class="dot blue"></span> After — 수정본 (수정 부분 <span style="color:var(--blue);">파랑</span>)</div>
+          <div class="ba-label"><span class="dot blue"></span> 고친 자료 (수정 후, 바뀐 부분은 <span style="color:var(--blue);">파랑</span>)</div>
           <pre id="afterView"></pre>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <h2>4. 다운로드</h2>
-      <p class="desc">수정 제안이 반영된 고쳐진 파일과, 이번에 확인한 내용을 저장한 기억 파일을 각각 내려받을 수 있습니다. 기억 파일에는 원본 값을 확인한 항목, 판정 결과, 근거가 들어 있어 나중에 다시 올릴 수 있습니다.</p>
+      <h2>5. 내려받기</h2>
+      <p class="desc">고친 자료와 확인한 내용을 저장한 기록 파일을 각각 내려받을 수 있습니다. 기록 파일에는 원본 값을 확인한 항목, 비교 결과, 확인 근거가 들어 있어 나중에 다시 올려서 바뀐 부분만 확인할 수 있습니다.</p>
       <div class="download-row">
-        <button id="downloadFixedBtn" type="button" disabled>고쳐진 파일 다운로드</button>
-        <button id="downloadMemoryBtn" type="button" disabled>기억 파일(memory.json) 다운로드 — 확인된 내용 저장</button>
+        <button id="downloadFixedBtn" type="button" disabled>고친 자료 내려받기</button>
+        <button id="downloadMemoryBtn" type="button" disabled>기록 파일 내려받기 — 확인한 내용 저장</button>
       </div>
-      <div id="downloadInfo" style="margin-top: 8px; font-size: 0.8rem; color: var(--muted);"></div>
+      <div id="downloadInfo" style="margin-top: 8px; font-size: 0.8rem; color: var(--muted);">고친 자료가 준비됐습니다 (용량: <span id="downloadSize"></span> 바이트)</div>
       <div class="notice">
-        이 도구는 검수하는 사람의 확인 범위를 줄여 주는 보조 도구입니다. 결과에 오류가 있을 수 있으니, 중요 문서는 반드시 사람이 최종 확인해 주세요.
+        이 도구는 확인하는 사람의 확인 범위를 줄여 주는 보조 도구입니다. 결과에 오류가 있을 수 있으니, 중요한 문서는 반드시 사람이 최종 확인해 주세요.
       </div>
     </div>
 
     <div class="card rerun-section">
-      <h2>5. 기억 파일 재업로드 — 재검증 대상 축소</h2>
-      <p class="desc">이전 검수 결과(memory.json)를 다시 올리면, 이미 확인한 항목은 재검증 대상에서 제외하고 바뀐 부분만 다시 확인합니다. 기억 파일에는 원본 값을 확인한 항목과 그 판정 결과가 저장되어 있어, 초안이 수정된 뒤 전 항목을 처음부터 다시 검수하지 않아도 됩니다.</p>
+      <h2>6. 기록 파일 다시 올리기 — 이미 본 항목은 건너뛰기</h2>
+      <p class="desc">이전에 저장한 기록 파일(memory.json)을 다시 올리면, 이미 확인한 항목은 다시 확인하지 않고 바뀐 부분만 확인합니다. 기록 파일에는 원본 값을 확인한 항목과 비교 결과가 들어 있어, AI 자료가 바뀐 뒤에도 처음부터 다시 확인하지 않아도 됩니다.</p>
       <div class="row">
         <div class="field">
-          <label for="memoryFile">기억 파일 업로드</label>
+          <label for="memoryFile">기록 파일 올리기</label>
           <div class="file-area" id="memoryFileArea">
             <input type="file" id="memoryFile" accept=".json" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
             <div class="file-info" id="memoryFileInfo">
-              <span style="color:var(--muted);">memory.json을 선택하세요</span>
+              <span style="color:var(--muted);">기록 파일을 고르세요</span>
             </div>
           </div>
         </div>
         <div class="field" style="display:flex; align-items:flex-end;">
-          <button id="rerunBtn" class="secondary" type="button" disabled>재검증 실행</button>
+          <button id="rerunBtn" class="secondary" type="button" disabled>다시 확인하기</button>
         </div>
       </div>
       <div id="rerunResult" style="margin-top: 10px; font-size: 0.9rem;"></div>
       <div style="margin-top: 12px;">
-        <label style="font-size: 0.8rem; color: var(--muted); font-weight: 600; display:block; margin-bottom:4px;">현재 기억 파일 미리보기</label>
+        <label style="font-size: 0.8rem; color: var(--muted); font-weight: 600; display:block; margin-bottom:4px;">현재 기록 파일 미리보기</label>
         <pre id="memoryPreview" class="memory-preview"></pre>
       </div>
     </div>
@@ -374,13 +374,13 @@
 
   <div class="footer">
     <div class="links">
-      <a class="link" href="/docs" target="_blank">OpenAPI 문서</a>
+      <a class="link" href="/docs" target="_blank">정리된 사용 방법</a>
       <span class="sep">·</span>
-      <a class="link" href="/api/health" target="_blank">헬스 체크</a>
+      <a class="link" href="/api/health" target="_blank">사이트 상태 확인</a>
       <span class="sep">·</span>
-      <span style="color:var(--muted); font-size:0.82rem;">MABC-FINAL · AI 요약 초안 대조 검수</span>
+      <span style="color:var(--muted); font-size:0.82rem;">문서 확인 도우미 · AI와 원본 비교</span>
     </div>
-    <span class="disclaimer">이미지·URL·PDF는 입력으로 받지 않으며, 수치 계산은 코드가 직접 수행합니다.</span>
+    <span class="disclaimer">사진이나 웹 주소, PDF 파일은 올릴 수 없고, 숫자 계산은 프로그램이 직접 합니다.</span>
   </div>
 </div>
 
@@ -452,12 +452,12 @@
 
   exampleBtn.addEventListener("click", async () => {
     $("#textInputSection").classList.remove("hidden");
-    showProgress("예시 데이터를 불러오는 중...");
+    showProgress("예시 자료를 불러오는 중...");
     try {
       const res = await fetch("/api/example", { method: "POST" });
       if (!res.ok) {
         const errBody = await res.text().then(t => t || res.statusText);
-        throw new Error(`예시 데이터를 가져오지 못했습니다 (HTTP ${res.status}). ${errBody.slice(0,120)}`);
+        throw new Error(`예시 자료를 가져오지 못했습니다 (HTTP ${res.status}). ${errBody.slice(0,120)}`);
       }
       const data = await res.json();
       const origEl = document.getElementById("originalText");
@@ -474,8 +474,8 @@
       });
       $("#originalFile").value = "";
       $("#draftFile").value = "";
-      setFileInfo("originalFileArea", "originalFileInfo", null, "원본 텍스트를 입력했습니다");
-      setFileInfo("draftFileArea", "draftFileInfo", null, "초안 텍스트를 입력했습니다");
+      setFileInfo("originalFileArea", "originalFileInfo", null, "원본 자료를 입력했습니다");
+      setFileInfo("draftFileArea", "draftFileInfo", null, "AI 자료를 입력했습니다");
       uploadBtn.disabled = true;
       clearProgress();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -493,7 +493,7 @@
     const input = $("#" + inputId);
     input.addEventListener("change", () => {
       const file = input.files.length > 0 ? input.files[0] : null;
-      setFileInfo(areaId, infoId, file, inputId === "originalFile" ? "원본 파일을 선택하거나 아래 텍스트로 직접 입력하세요" : "초안 파일을 선택하거나 아래 텍스트로 직접 입력하세요");
+      setFileInfo(areaId, infoId, file, inputId === "originalFile" ? "원본 파일을 고르거나 아래 칸에 직접 입력할 수 있습니다" : "AI 자료를 고르거나 아래 칸에 직접 입력할 수 있습니다");
       uploadBtn.disabled = !($("#originalFile").files.length > 0 && $("#draftFile").files.length > 0);
     });
   });
@@ -510,13 +510,13 @@
     const origFile = $("#originalFile").files[0];
     const draftFile = $("#draftFile").files[0];
     if (!origFile || !draftFile) return;
-    showProgress("파일을 업로드 중입니다...", false, 0);
+    showProgress("파일을 올리는 중입니다...", false, 0);
     try {
       const form = new FormData();
       form.append("original", origFile);
       form.append("draft", draftFile);
       const res = await fetch("/api/upload", { method: "POST", body: form });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "업로드 실패"); }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "올리기 실패"); }
       const data = await res.json();
       currentOriginalId = data.original_id;
       currentDraftId = data.draft_id;
@@ -529,16 +529,16 @@
   checkFromTextBtn.addEventListener("click", async () => {
     const origText = $("#originalText").value.trim();
     const draftText = $("#draftText").value.trim();
-    if (!origText || !draftText) { alert("원본과 초안을 모두 입력해주세요."); return; }
+    if (!origText || !draftText) { alert("원본과 AI 자료를 모두 입력해주세요."); return; }
     currentOriginalText = origText;
     currentDraftText = draftText;
-    showProgress("텍스트를 업로드 중입니다...", false, 0);
+    showProgress("텍스트를 올리는 중입니다...", false, 0);
     try {
       const form = new FormData();
       form.append("original", new File([origText], "original.txt", { type: "text/plain" }), "original.txt");
       form.append("draft", new File([draftText], "draft.txt", { type: "text/plain" }), "draft.txt");
       const res = await fetch("/api/upload", { method: "POST", body: form });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "업로드 실패"); }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "올리기 실패"); }
       const data = await res.json();
       currentOriginalId = data.original_id;
       currentDraftId = data.draft_id;
@@ -549,7 +549,7 @@
   });
 
   async function runCheck(origId, draftId) {
-    showProgress("원본과 초안을 대조 중입니다...", false, 0);
+    showProgress("원본과 AI 자료를 비교 중입니다...", false, 0);
     try {
       const res = await fetch("/api/check", {
         method: "POST",
@@ -558,10 +558,10 @@
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail || "검수 실패");
+        throw new Error(err.detail || "확인하기 실패");
       }
       const data = await res.json();
-      if (data.status === "error") throw new Error(data.error || "검수 중 오류");
+      if (data.status === "error") throw new Error(data.error || "확인 중 오류");
       currentResults = data.results || [];
       currentFixedText = data.fixed_text || null;
       currentMemoryData = data.memory_data || null;
@@ -580,7 +580,7 @@
   function updateDownloadButtons() {
     if (currentFixedText) {
       downloadFixedBtn.disabled = false;
-      downloadInfo.textContent = `고쳐진 파일 준비됨 (${new Blob([currentFixedText]).size} 바이트)`;
+      downloadInfo.textContent = `고친 자료가 준비됐습니다 (용량: <span id="downloadSize"></span> 바이트)`;
     } else {
       downloadFixedBtn.disabled = true;
       downloadInfo.textContent = "";
@@ -593,7 +593,7 @@
   }
 
   function renderResults(data) {
-    resultsStatus.textContent = data.status === "done" ? "검수 완료" : data.status;
+    resultsStatus.textContent = data.status === "done" ? "확인 완료" : data.status;
     resultsStatus.className = "status-badge " + (data.status === "done" ? "ok" : "err");
     elapsedEl.textContent = data.elapsed_seconds ? `(${data.elapsed_seconds}초)` : "";
     resultsBody.innerHTML = "";
@@ -612,7 +612,7 @@
       resultsBody.appendChild(tr);
     });
     const calcItems = currentResults.filter(r => r.calculation);
-    calcNote.textContent = calcItems.length ? "계산 인용 검증: " + calcItems.map(r => `${r.item}: ${r.calculation}`).join("; ") : "";
+    calcNote.textContent = calcItems.length ? "숫자 계산 확인: " + calcItems.map(r => `${r.item}: ${r.calculation}`).join("; ") : "";
     resultsBody.querySelectorAll("input[type=checkbox]").forEach(cb => {
       cb.addEventListener("change", (e) => {
         currentResults[parseInt(e.target.dataset.idx, 10)].verified = e.target.checked;
@@ -687,10 +687,10 @@
       if (processed.has(key)) continue;
       processed.add(key);
       beforeHtml.push("");
-      afterHtml.push(`<em style="color:var(--muted);">(원본 항목 "${escapeHtml(key)}"은 초안에 없음)</em>`);
+      afterHtml.push(`<em style="color:var(--muted);">(원본 항목 "${escapeHtml(key)}"은 AI 자료에 없음)</em>`);
     }
-    beforeView.innerHTML = beforeHtml.join("\n") || '<em style="color:var(--muted);">초안이 없습니다.</em>';
-    afterView.innerHTML = afterHtml.join("\n") || '<em style="color:var(--muted);">수정본이 없습니다.</em>';
+    beforeView.innerHTML = beforeHtml.join("\n") || '<em style="color:var(--muted);">AI 자료가 없습니다.</em>';
+    afterView.innerHTML = afterHtml.join("\n") || '<em style="color:var(--muted);">고친 자료가 없습니다.</em>';
   }
 
   function draftLine(key, val) {
@@ -724,7 +724,7 @@
   rerunBtn.addEventListener("click", async () => {
     const file = memoryFileInput.files[0];
     if (!file) return;
-    showProgress("기억 파일을 분석하고 재검증 대상을 축소 중입니다...", false, 0);
+    showProgress("기록 파일을 읽고 이미 본 항목은 건너뛰는 중...", false, 0);
     try {
       const text = await file.text();
       const memData = JSON.parse(text);
@@ -733,9 +733,9 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memory_data: memData }),
       });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "재검증 실패"); }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "다시 확인하기 실패"); }
       const data = await res.json();
-      rerunResult.innerHTML = `<span class="status-badge ok">재검증 완료</span> &nbsp; 재검증 대상: ${data.remaining_checks}건 &nbsp;|&nbsp; 건너뛴 건수: ${data.skipped_checks}건`;
+      rerunResult.innerHTML = `<span class="status-badge ok">다시 확인 완료</span> &nbsp; 다시 확인할 항목: ${data.remaining_checks}건 &nbsp;|&nbsp; 건너뛴 항목: ${data.skipped_checks}건`;
       if (currentMemoryData) {
         currentMemoryData["reverified_at"] = new Date().toISOString();
         updateMemoryPreview();
